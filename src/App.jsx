@@ -1,6 +1,7 @@
 // import { useState } from 'react'
-import heroImg from './assets/hero.png'
 import './App.css'
+
+import StatusPill from './components/StatusPill'
 
 function App() {
 
@@ -8,6 +9,8 @@ function App() {
     <>
       <header>
         <h2>Vera</h2>
+        <StatusPill status="needs review" />
+        <StatusPill status="ready to bill" />
       </header>
     </>
   )
