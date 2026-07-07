@@ -1,0 +1,6 @@
+.statusPill { border-radius: 999px; padding: 2px 10px; font-size: 0.8rem; }
+
+.needsReview { background-color: red; }
+.readyToBill { background-color: green; }
+.complete    { background-color: yellow; }
+.pending     { background-color: blue; }
