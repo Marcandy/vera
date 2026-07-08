@@ -1,6 +1,17 @@
-.statusPill { border-radius: 999px; padding: 2px 10px; font-size: 0.8rem; }
+.statusPill {
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
 
-.needsReview { background-color: red; }
-.readyToBill { background-color: green; }
-.complete    { background-color: yellow; }
-.pending     { background-color: blue; }
+/* needs review is the only status requiring admin ACTION — it alone
+   gets a solid fill so it pops against the calm pills around it */
+.needsReview { background-color: #b3261e; color: #ffffff; }
+
+/* light background + dark text pairs (WCAG-friendly contrast) */
+.readyToBill { background-color: #e3f5e9; color: #1a7f37; }
+.inProgress  { background-color: #d9f0ef; color: #0e6b66; }
+.scheduled   { background-color: #fdf3df; color: #8a5a09; }
+.billed      { background-color: #e7f0f8; color: #175d80; }
