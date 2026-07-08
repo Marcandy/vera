@@ -1,25 +1,19 @@
 import './App.css'
 
-import StatusPill from './components/StatusPill';
-import VisitCard from './components/VisitCard';
+import Dashboard from './components/Dashboard';
+// import StatusPill from './components/StatusPill';
+// import VisitCard from './components/VisitCard';
 
 function App() {
-  const visit = {
-    patientName: 'John Pirate',
-    scheduledAt: "July 8, 9:30am",
-    caregiverName: "Marcus",
-    status: "complete"
-  }
+  
   return (
     <>
       <header>
-        <h2>Vera</h2>
+        <h1>Vera</h1>
       </header>
 
       <section>
-        <VisitCard visit={visit}/>
-
-        <StatusPill status="needs review" />
+        <Dashboard />
       </section>
     </>
   )

@@ -1,10 +1,11 @@
 import styles from './StatusPill.module.css'
 
 const STATUS_CLASSES = {
-    "pending": styles.pending,
-    "complete": styles.complete,
+    "scheduled": styles.scheduled,
+    "in progress": styles.inProgress,
     "needs review": styles.needsReview,
-    "ready to bill": styles.readyToBill
+    "ready to bill": styles.readyToBill,
+    "billed": styles.billed
 }
 
 const StatusPill = ({ status }) => {
