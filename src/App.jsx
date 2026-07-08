@@ -1,17 +1,26 @@
-// import { useState } from 'react'
 import './App.css'
 
-import StatusPill from './components/StatusPill'
+import StatusPill from './components/StatusPill';
+import VisitCard from './components/VisitCard';
 
 function App() {
-
+  const visit = {
+    patientName: 'John Pirate',
+    scheduledAt: "July 8, 9:30am",
+    caregiverName: "Marcus",
+    status: "complete"
+  }
   return (
     <>
       <header>
         <h2>Vera</h2>
-        <StatusPill status="needs review" />
-        <StatusPill status="ready to bill" />
       </header>
+
+      <section>
+        <VisitCard visit={visit}/>
+
+        <StatusPill status="needs review" />
+      </section>
     </>
   )
 }
