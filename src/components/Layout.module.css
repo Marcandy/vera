@@ -1,0 +1,51 @@
+.shell {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    grid-template-rows: auto 1fr;   /* row 1: banner, row 2: sidebar + content */
+    min-height: 100vh;
+}
+
+.sidebar {
+    background-color: hsl(120, 49%, 55%);   /* experiment: bright lime chrome */
+    padding: 20px 14px;
+}
+
+/* blue brand banner, bleeding to the sidebar's edges */
+.brand {
+    grid-column: 1 / -1;            /* span from first to last column line */
+    background-color: var(--vera-primary);
+    color: #ffffff;
+    margin: 0;
+    padding: 14px 24px;
+    font-size: 1.4rem;
+    letter-spacing: 0.5px;
+}
+
+.sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.navLink {
+    color: #084d23;   /* dark text — white fails contrast on lime */
+    text-decoration: none;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.navLink:hover {
+    background-color: rgba(255, 255, 255, 0.3);   /* light chip reads crisper than a shadow on mid-green */
+    color: #063018;
+}
+
+.active {
+    background-color: var(--vera-primary);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.content {
+    padding: 24px 32px;
+}
