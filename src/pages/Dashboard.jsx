@@ -1,4 +1,5 @@
-import VisitCard from "./VisitCard";
+import { Link } from "react-router";
+import VisitCard from "../components/VisitCard";
 import styles from "./Dashboard.module.css";
 
 const VISITS = [
@@ -19,7 +20,12 @@ const Dashboard = () => {
             <ul className={styles.visitList}>
                 {VISITS.map((visit) => (
                     <li key={visit.id}>
-                        <VisitCard visit={visit} />
+                        <Link
+                            to={`/visits/${visit.id}`}
+                            className={styles.cardLink}
+                        >
+                            <VisitCard visit={visit} />
+                        </Link>
                     </li>
                 ))}
             </ul>
