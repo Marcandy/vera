@@ -35,3 +35,5 @@
     top: 16px;
     right: 16px;
 }
+
+.cardLink { text-decoration: none; color: inherit; display: block; }

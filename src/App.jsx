@@ -1,8 +1,8 @@
 import './App.css'
+import { Routes, Route, Navigate } from 'react-router';
+import Dashboard from './pages/Dashboard';
+import VisitDetail from './pages/VisitDetail';
 
-import Dashboard from './components/Dashboard';
-// import StatusPill from './components/StatusPill';
-// import VisitCard from './components/VisitCard';
 
 function App() {
   
@@ -13,7 +13,11 @@ function App() {
       </header>
 
       <section>
-        <Dashboard />
+        <Routes>
+          <Route path='/' element={<Navigate to='/dashboard' replace />} />
+          <Route path='/dashboard' element={<Dashboard />} />
+          <Route path='/visits/:visitId' element={<VisitDetail />} />
+        </Routes>
       </section>
     </>
   )
