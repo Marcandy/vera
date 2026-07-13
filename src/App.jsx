@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router';
 import Dashboard from './pages/Dashboard';
 import VisitDetail from './pages/VisitDetail';
 import Layout from './components/Layout';
+import Billing from './pages/Billing';
 
 
 function App() {
@@ -13,6 +14,8 @@ function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/visits/:visitId" element={<VisitDetail />} />
+              <Route path="/billing" element={<Billing />} />
+
           </Route>
       </Routes>
   )
