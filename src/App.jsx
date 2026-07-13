@@ -4,6 +4,8 @@ import Dashboard from './pages/Dashboard';
 import VisitDetail from './pages/VisitDetail';
 import Layout from './components/Layout';
 import Billing from './pages/Billing';
+import Caregivers from './pages/Caregivers';
+import NotFound from './pages/NotFound';
 
 
 function App() {
@@ -15,7 +17,8 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/visits/:visitId" element={<VisitDetail />} />
               <Route path="/billing" element={<Billing />} />
-
+              <Route path="/caregivers" element={<Caregivers />} />
+              <Route path="*" element={<NotFound />} />
           </Route>
       </Routes>
   )
