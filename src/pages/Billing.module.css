@@ -1,0 +1,68 @@
+.billing {
+    max-width: 720px;
+}
+
+.billing h3 {
+    margin: 0 0 16px;
+    color: var(--vera-primary-dark);
+}
+
+.emptyState {
+    color: var(--text-muted);
+    background-color: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+}
+
+.claimsTable {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.95rem;
+}
+
+.claimsTable th,
+.claimsTable td {
+    padding: 10px 16px;
+    text-align: left;
+}
+
+.claimsTable thead th {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.claimsTable tbody tr {
+    border-bottom: 1px solid var(--border);
+}
+
+.claimsTable tfoot td {
+    font-weight: 600;
+    border-top: 2px solid var(--border);
+}
+
+/* the money line — same teal as the nav, money accent role */
+.claimsTable tfoot .amountCol {
+    color: var(--vera-secondary);
+    font-size: 1.05rem;
+}
+
+/* numeric columns read best right-aligned, decimals stacking;
+   .claimsTable prefix outweighs the th/td left-align rule above */
+.claimsTable .amountCol {
+    text-align: right;
+}
+
+.patientLink {
+    color: var(--vera-primary);
+    text-decoration: none;
+}
+
+.patientLink:hover {
+    text-decoration: underline;
+}

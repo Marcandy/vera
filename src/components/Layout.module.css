@@ -6,7 +6,7 @@
 }
 
 .sidebar {
-    background-color: hsl(120, 49%, 55%);   /* experiment: bright lime chrome */
+    background-color: var(--vera-secondary);
     padding: 20px 14px;
 }
 
@@ -28,7 +28,7 @@
 }
 
 .navLink {
-    color: #084d23;   /* dark text — white fails contrast on lime */
+    color: rgba(255, 255, 255, 0.9);   /* white passes contrast on the darker teal */
     text-decoration: none;
     padding: 9px 12px;
     border-radius: 8px;
@@ -36,13 +36,13 @@
 }
 
 .navLink:hover {
-    background-color: rgba(255, 255, 255, 0.3);   /* light chip reads crisper than a shadow on mid-green */
-    color: #063018;
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
 }
 
 .active {
-    background-color: var(--vera-primary);
-    color: #ffffff;
+    background-color: #ffffff;   /* white chip + teal text pops on teal chrome */
+    color: var(--vera-secondary);
     font-weight: 600;
 }
 
