@@ -1,0 +1,133 @@
+/* Marcus's surface: phone-width even on desktop, one primary action */
+.caregiverVisit {
+    max-width: 480px;
+}
+
+.backLink {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: var(--vera-primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.backLink:hover {
+    text-decoration: underline;
+}
+
+.roleBanner {
+    margin: 0 0 12px;
+    color: var(--vera-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.headerRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.title {
+    margin: 0;
+    color: var(--vera-primary-dark);
+}
+
+.meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 16px;
+    margin: 0 0 24px;
+    font-size: 0.95rem;
+}
+
+.meta dt {
+    color: var(--text-muted);
+}
+
+.meta dd {
+    margin: 0;
+}
+
+/* the one big thumb target */
+.checkInButton {
+    display: block;
+    width: 100%;
+    min-height: 56px;
+    background-color: var(--vera-secondary);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.checkInButton:hover {
+    background-color: #006e70;
+}
+
+.checkInButton:active {
+    transform: scale(0.99);
+}
+
+.checkInButton:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+/* same red family as needs-review — errors and holds are one signal system */
+.errorNote {
+    margin: 10px 0 0;
+    padding: 10px 14px;
+    background-color: #fdecea;
+    border: 1px solid #f0b9b4;
+    border-radius: 8px;
+    color: #a61b1b;
+    font-size: 0.9rem;
+}
+
+.mockNote {
+    margin: 10px 0 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.checkedInCard {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--vera-secondary);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.checkedInTime {
+    margin: 0 0 6px;
+    font-weight: 600;
+}
+
+.mockLocation {
+    margin: 0 0 6px;
+    color: var(--vera-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.nextStep {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.closedNote {
+    margin: 0;
+    color: var(--text-muted);
+    background-color: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+}
