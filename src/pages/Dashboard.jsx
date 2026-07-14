@@ -1,24 +1,40 @@
 import { Link } from "react-router";
 import VisitCard from "../components/VisitCard";
 import styles from "./Dashboard.module.css";
+import { getVisits } from "../services/visitService";
+import { useEffect, useState } from "react";
 
-const VISITS = [
-    { id: 1, patientName: "Eleanor Whitfield", caregiverName: "Marcus Reed",     appointmentTime: "2026-07-07T14:00", status: "needs review" },
-    { id: 2, patientName: "Samuel Okafor",     caregiverName: "Dana Alvarez",    appointmentTime: "2026-07-07T16:30", status: "needs review" },
-    { id: 3, patientName: "Rosa Delgado",      caregiverName: "Marcus Reed",     appointmentTime: "2026-07-07T09:00", status: "ready to bill" },
-    { id: 4, patientName: "Harold Brennan",    caregiverName: "Keisha Thompson", appointmentTime: "2026-07-07T11:30", status: "ready to bill" },
-    { id: 5, patientName: "Miriam Katz",       caregiverName: "Dana Alvarez",    appointmentTime: "2026-07-08T08:00", status: "in progress" },
-    { id: 6, patientName: "George Antonelli",  caregiverName: "Keisha Thompson", appointmentTime: "2026-07-08T13:00", status: "scheduled" },
-    { id: 7, patientName: "Pearl Jackson",     caregiverName: "Marcus Reed",     appointmentTime: "2026-07-07T08:00", status: "billed" }
-];
 
 const Dashboard = () => {
+    const [ visitList, setVisitList ] = useState(null);
+
+    useEffect(()=> {
+        async function fetchData() {
+            const visitListData = await getVisits();
+            setVisitList(visitListData);
+
+        }
+        fetchData();
+    },[])
+
+    if(visitList === null) return <p>Loading...</p>
+    if(visitList.length === 0) {
+        return (
+            <section className={styles.dashboard}>
+                <h3>Visits</h3>
+                <p className={styles.emptyState}>
+                    No visits yet. Scheduled visits will appear here.
+                </p>
+            </section>
+        );
+    }
+
     return (
         <section className={styles.dashboard}>
             <h3>Visits</h3>
 
             <ul className={styles.visitList}>
-                {VISITS.map((visit) => (
+                {visitList.map((visit) => (
                     <li key={visit.id}>
                         <Link
                             to={`/visits/${visit.id}`}

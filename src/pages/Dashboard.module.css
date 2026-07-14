@@ -18,3 +18,13 @@
     flex-direction: column;
     gap: 12px;
 }
+
+.cardLink { text-decoration: none; color: inherit; display: block; }
+
+.emptyState {
+    color: var(--text-muted);
+    background-color: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+};
