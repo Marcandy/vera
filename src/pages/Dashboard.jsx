@@ -18,7 +18,16 @@ const Dashboard = () => {
     },[])
 
     if(visitList === null) return <p>Loading...</p>
-    if(visitList.length === 0) return <></> /*empty state */
+    if(visitList.length === 0) {
+        return (
+            <section className={styles.dashboard}>
+                <h3>Visits</h3>
+                <p className={styles.emptyState}>
+                    No visits yet. Scheduled visits will appear here.
+                </p>
+            </section>
+        );
+    }
 
     return (
         <section className={styles.dashboard}>
