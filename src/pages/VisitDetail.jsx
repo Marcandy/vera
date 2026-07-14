@@ -30,12 +30,16 @@ const VisitDetail = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        let stale = false;
         async function fetchData() {
             const result = await getVisitById(Number(visitId));
-            setVisit(result ?? null);
-            setLoading(false);
+            if (!stale) {
+                setVisit(result ?? null);
+                setLoading(false);
+            }
         }
         fetchData();
+        return () => { stale = true; };
     }, [visitId]);
 
     if (loading) return (<p>Loading...</p>);
@@ -51,6 +55,9 @@ const VisitDetail = () => {
             <div className={styles.headerRow}>
                 <h3>{visit.patientName}</h3>
                 <StatusPill status={visit.status} />
+                <Link to={`/caregiver/visits/${visit.id}`} className={styles.caregiverFlowLink}>
+                    Caregiver flow →
+                </Link>
             </div>
 
             {visit.status === 'needs review' && (

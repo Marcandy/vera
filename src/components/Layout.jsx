@@ -7,7 +7,15 @@ const navLinkClass = ({ isActive }) =>
 const Layout = () => {
     return (
         <div className={styles.shell}>
-            <h1 className={styles.brand}>Vera</h1>
+            <h1 className={styles.brand}>
+                <svg className={styles.logo} viewBox="0 0 120 100" aria-hidden="true">
+                    <path d="M 20 44 L 52 82" stroke="#2f9e44" strokeWidth="17" strokeLinecap="round" fill="none" />
+                    <path d="M 52 82 L 100 14" stroke="#1971c2" strokeWidth="17" strokeLinecap="round" fill="none" />
+                    <circle cx="52" cy="82" r="8" fill="#1971c2" />
+                    <circle cx="52" cy="82" r="4.5" fill="#69db7c" />
+                </svg>
+                Vera
+            </h1>
 
             <aside className={styles.sidebar}>
                 <nav>
