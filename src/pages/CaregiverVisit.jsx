@@ -67,7 +67,7 @@ const CaregiverVisit = () => {
 
         setCheckingOut(true);
         try {
-            const checkOutData = await checkOutVisit(visitId, {assessment, signature});
+            const checkOutData = await checkOutVisit(visit.id, {assessment, signature});
             setVisit(checkOutData);
         } catch(err) {
             setError(err.message);
@@ -144,7 +144,7 @@ const CaregiverVisit = () => {
                         {/* warning state for signature*/
                             showNoSignatureWarning && (
                                 <p className={styles.warningNote}>
-                                    No patient signature. This visit will be flagged for review a check-out.
+                                    No patient signature. This visit will be flagged for review at check-out.
                                 </p>
                             )
                         }
