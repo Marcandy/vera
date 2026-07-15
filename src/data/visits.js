@@ -61,6 +61,19 @@ export const visits = [
         signature: "Harold Brennan"
     },
     {
+        id: 8,
+        patientName: "Dorothy Chen",
+        caregiverName: "Keisha Thompson",
+        appointmentTime: "2026-07-07T10:00",
+        status: "ready to bill",
+        estimatedCost: 63,
+        checkInTime: "2026-07-07T09:58",
+        checkOutTime: "2026-07-07T11:45",
+        assessment: "Wound dressing changed per care plan. Range-of-motion exercises completed, patient tolerated well.",
+        patientConcern: null,
+        signature: "Dorothy Chen"
+    },
+    {
         id: 5,
         patientName: "Miriam Katz",
         caregiverName: "Dana Alvarez",
@@ -68,6 +81,19 @@ export const visits = [
         status: "in progress",
         estimatedCost: 42,
         checkInTime: "2026-07-08T08:04",
+        checkOutTime: null,
+        assessment: null,
+        patientConcern: null,
+        signature: null
+    },
+    {
+        id: 9,
+        patientName: "Walter Osei",
+        caregiverName: "Dana Alvarez",
+        appointmentTime: "2026-07-08T11:00",
+        status: "in progress",
+        estimatedCost: 47,
+        checkInTime: "2026-07-08T11:05",
         checkOutTime: null,
         assessment: null,
         patientConcern: null,
@@ -84,6 +110,19 @@ export const visits = [
         checkOutTime: null,
         assessment: null,
         patientConcern: null,
+        signature: null
+    },
+    {
+        id: 10,
+        patientName: "Agnes Romano",
+        caregiverName: "Marcus Reed",
+        appointmentTime: "2026-07-09T09:30",
+        status: "scheduled",
+        estimatedCost: 40,
+        checkInTime: null,
+        checkOutTime: null,
+        assessment: null,
+        patientConcern: "Wants help reorganizing the medication cabinet; labels are too small to read.",
         signature: null
     },
     {

@@ -117,9 +117,50 @@
     font-weight: 600;
 }
 
-.nextStep {
-    margin: 0;
+.checkOutForm {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.fieldLabel {
+    font-size: 0.85rem;
+    font-weight: 600;
     color: var(--text-muted);
+}
+
+.fieldInput {
+    font: inherit;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background-color: #ffffff;
+}
+
+textarea.fieldInput {
+    resize: vertical;
+}
+
+.fieldInput:focus {
+    border-color: var(--vera-secondary);
+    box-shadow: 0 0 0 2px rgba(0, 132, 135, 0.2);
+    outline: none;
+}
+
+.checkOutButton {
+    composes: checkInButton;
+    margin-top: 8px;
+}
+
+/* amber, not red: a heads-up before acting, not a failure after */
+.warningNote {
+    margin: 4px 0 0;
+    padding: 10px 14px;
+    background-color: #fff4d6;
+    border: 1px solid #e6c96b;
+    border-radius: 8px;
+    color: #7a5b00;
     font-size: 0.9rem;
 }
 
