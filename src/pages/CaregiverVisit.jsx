@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router";
 import StatusPill from "../components/StatusPill";
-import { checkInVisit, getVisitById } from "../services/visitService";
+import { checkInVisit, checkOutVisit, getVisitById } from "../services/visitService";
 import styles from "./CaregiverVisit.module.css";
 
 const formatDateTime = (isoString) =>
@@ -22,6 +22,12 @@ const CaregiverVisit = () => {
 
     const [error, setError] = useState(null);
     const [checkingIn, setCheckingIn] = useState(false);
+    const [checkingOut, setCheckingOut] = useState(false);
+
+    const [assessment, setAssessment] = useState("");
+    const [signature, setSignature] = useState("");
+    const [confirmNoSignature, setConfirmNoSignature] = useState(false);
+
 
     useEffect(() => {
         let stale = false;
@@ -49,9 +55,36 @@ const CaregiverVisit = () => {
         }
     }
 
+    async function handleCheckOut(e) {
+        e.preventDefault();
+        setError(null);
+
+        //flag at door first to warn about submission without signature
+        if (!signature.trim() && !confirmNoSignature) {
+            setConfirmNoSignature(true);
+            return;
+        }
+
+        setCheckingOut(true);
+        try {
+            const checkOutData = await checkOutVisit(visitId, {assessment, signature});
+            setVisit(checkOutData);
+        } catch(err) {
+            setError(err.message);
+        } finally {
+            setCheckingOut(false);
+        }
+    }
+
     if (loading) return (<p>Loading...</p>);
 
     if (!visit) return (<p>Visit not found. <Link to="/dashboard">Back to visits</Link></p>);
+
+    const missingSignature = !signature.trim();
+    const showNoSignatureWarning = confirmNoSignature && missingSignature;
+    const checkOutLabel = checkingOut
+        ? "Checking out..."
+        : showNoSignatureWarning ? "Check Out Anyway" : "Check Out";
 
     return (
         <section className={styles.caregiverVisit}>
@@ -86,9 +119,40 @@ const CaregiverVisit = () => {
                 <div className={styles.checkedInCard}>
                     <p className={styles.checkedInTime}>Checked in at {formatTime(visit.checkInTime)}</p>
                     <p className={styles.mockLocation}>Location: verified (mock)</p>
-                    <p className={styles.nextStep}>
-                        Assessment and patient signature are captured at check-out.
-                    </p>
+
+                    <form className={styles.checkOutForm} onSubmit={handleCheckOut}>
+                        <label className={styles.fieldLabel} htmlFor="assessment">Visit assessment</label>
+                        <textarea
+                            id="assessment"
+                            className={styles.fieldInput}
+                            rows={4}
+                            placeholder="Care provided during this visit..."
+                            value={assessment}
+                            onChange={(e) => setAssessment(e.target.value)}
+                        />
+
+                        <label className={styles.fieldLabel} htmlFor="signature">Patient signature (typed)</label>
+                        <input
+                            id="signature"
+                            type="text"
+                            className={styles.fieldInput}
+                            placeholder="Patient types their full name"
+                            value={signature}
+                            onChange={(e) => setSignature(e.target.value)}
+                        />
+
+                        {/* warning state for signature*/
+                            showNoSignatureWarning && (
+                                <p className={styles.warningNote}>
+                                    No patient signature. This visit will be flagged for review a check-out.
+                                </p>
+                            )
+                        }
+
+                        <button type="submit" className={styles.checkOutButton} disabled={checkingOut}>
+                            {checkOutLabel}
+                        </button>
+                    </form>
                 </div>
             )}
 
