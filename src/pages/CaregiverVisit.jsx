@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router";
 import StatusPill from "../components/StatusPill";
-import { checkInVisit, checkOutVisit, getVisitById } from "../services/visitService";
+import { checkInVisit, checkOutVisit, getVisitById, supplyEvidence } from "../services/visitService";
 import styles from "./CaregiverVisit.module.css";
 
 const formatDateTime = (isoString) =>
@@ -13,6 +13,15 @@ const formatTime = (isoString) =>
     isoString
         ? new Date(isoString).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
         : "—";
+
+// Evidence fields for the needs-review supply panel, in pipeline order.
+// Duplicated from VisitDetail for now; extraction is a parked card.
+const EVIDENCE_LABELS = [
+    { field: "checkInTime", label: "Check-in time" },
+    { field: "checkOutTime", label: "Check-out time" },
+    { field: "assessment", label: "Visit assessment" },
+    { field: "signature", label: "Patient signature" },
+];
 
 const CaregiverVisit = () => {
     const { visitId } = useParams();
@@ -76,6 +85,21 @@ const CaregiverVisit = () => {
         }
     }
 
+    async function handleSupplyEvidence(e) {
+        e.preventDefault();
+        setError(null);
+
+        setCheckingOut(true);
+        try {
+            const updated = await supplyEvidence(visit.id, { assessment, signature });
+            setVisit(updated);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setCheckingOut(false);
+        }
+    }
+
     if (loading) return (<p>Loading...</p>);
 
     if (!visit) return (<p>Visit not found. <Link to="/dashboard">Back to visits</Link></p>);
@@ -85,6 +109,7 @@ const CaregiverVisit = () => {
     const checkOutLabel = checkingOut
         ? "Checking out..."
         : showNoSignatureWarning ? "Check Out Anyway" : "Check Out";
+    const missingEvidence = EVIDENCE_LABELS.filter(({ field }) => visit[field] === null);
 
     return (
         <section className={styles.caregiverVisit}>
@@ -156,9 +181,61 @@ const CaregiverVisit = () => {
                 </div>
             )}
 
-            {!["scheduled", "in progress"].includes(visit.status) && (
+            {visit.status === "needs review" && (
+                <div className={styles.supplyCard}>
+                    <h4 className={styles.supplyTitle}>Missing evidence</h4>
+                    <ul className={styles.missingList}>
+                        {missingEvidence.map(({ field, label }) => (
+                            <li key={field}>{label}</li>
+                        ))}
+                    </ul>
+
+                    {visit.checkOutTime === null && (
+                        <p className={styles.warningNote}>
+                            Check-out time can't be added after a visit. This needs office follow-up.
+                        </p>
+                    )}
+
+                    <form className={styles.checkOutForm} onSubmit={handleSupplyEvidence}>
+                        {visit.assessment === null && (
+                            <>
+                                <label className={styles.fieldLabel} htmlFor="assessment">Visit assessment</label>
+                                <textarea
+                                    id="assessment"
+                                    className={styles.fieldInput}
+                                    rows={4}
+                                    placeholder="Care provided during this visit..."
+                                    value={assessment}
+                                    onChange={(e) => setAssessment(e.target.value)}
+                                />
+                            </>
+                        )}
+
+                        {visit.signature === null && (
+                            <>
+                                <label className={styles.fieldLabel} htmlFor="signature">Patient signature (typed)</label>
+                                <input
+                                    id="signature"
+                                    type="text"
+                                    className={styles.fieldInput}
+                                    placeholder="Patient types their full name"
+                                    value={signature}
+                                    onChange={(e) => setSignature(e.target.value)}
+                                />
+                            </>
+                        )}
+
+                        {/* pending flag + disabled */}
+                        <button type="submit" className={styles.checkOutButton} disabled={checkingOut}>
+                            { checkingOut ? "Submitting..." : "Submit Evidence" }
+                        </button>
+                    </form>
+                </div>
+            )}
+
+            {!["scheduled", "in progress", "needs review"].includes(visit.status) && (
                 <p className={styles.closedNote}>
-                    This visit is {visit.status} — no caregiver actions available.
+                    This visit is {visit.status}. No caregiver actions available.
                 </p>
             )}
         </section>
