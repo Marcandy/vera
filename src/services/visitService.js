@@ -69,5 +69,39 @@ export const checkOutVisit = async (id, { assessment, signature }) => {
     visits[idx] = updated;
     // return the update object
     return updated;
+}
 
+
+export const supplyEvidence = async(id, {assessment, signature}) => {
+    await delay(300)
+
+    const idx = visits.findIndex((visit) => visit.id === Number(id));
+    if (idx === -1) {
+        throw new Error(`Visit ${id} not found`);
+    }
+
+    if(visits[idx].status !== "needs review") {
+        throw new Error(`Cannot supply evidence to a visit that is ${visits[idx].status }`);
+    }
+
+    // empty string is not evidence, null is for the frontend
+    const cleanAssessment = assessment?.trim() ? assessment.trim() : null;
+    const cleanSignature = signature?.trim() ? signature.trim() : null;
+
+    // merge, supplying nothing keeps what exist
+    const updated = {
+        ...visits[idx],
+        assessment: cleanAssessment ?? visits[idx].assessment,
+        signature: cleanSignature ?? visits[idx].signature
+    }
+
+    // same evidence as checkout
+    const evidenceComplete = 
+        updated.checkInTime && updated.checkOutTime &&
+        updated.assessment && updated.signature;
+
+    updated.status = evidenceComplete ? "ready to bill" : "needs review";
+
+    visits[idx] = updated;
+    return updated
 }
