@@ -1,10 +1,10 @@
-// Mock caregiver data. Components NEVER import this file directly —
+// Mock caregiver data. Components NEVER import this file directly;
 // all access goes through src/services/caregiverService.js.
 // Document statuses: "signed" | "pending" | "expiring".
 // A caregiver is cleared to work when every document is "signed";
 // that judgment is DERIVED at render, never stored.
 // Phone is a STRING: it's an identifier, not a quantity.
-// Visits reference caregivers by name string for now (no id link) —
+// Visits reference caregivers by name string for now (no id link);
 // real foreign keys arrive with the backend.
 export const caregivers = [
     {

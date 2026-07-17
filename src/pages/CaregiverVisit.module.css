@@ -79,7 +79,7 @@
     cursor: default;
 }
 
-/* same red family as needs-review — errors and holds are one signal system */
+/* same red family as needs-review: errors and holds are one signal system */
 .errorNote {
     margin: 10px 0 0;
     padding: 10px 14px;

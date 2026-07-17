@@ -102,16 +102,58 @@
     padding: 16px;
 }
 
+.cardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
 .caregiverName {
     margin: 0 0 4px;
     font-size: 1.05rem;
     color: var(--vera-primary-dark);
 }
 
+.clearedBadge {
+    color: #1a7f37;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.notClearedBadge {
+    color: #8a5a09;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
 .caregiverPhone {
-    margin: 0;
+    margin: 0 0 12px;
     color: var(--text-muted);
     font-size: 0.95rem;
+}
+
+.docList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--border);
+}
+
+.docRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.docRow:last-child {
+    border-bottom: none;
+}
+
+.docName {
+    font-size: 0.9rem;
 }
 
 .emptyState {
