@@ -51,14 +51,14 @@
 
 .fieldInput:focus {
     border-color: var(--vera-secondary);
-    box-shadow: 0 0 0 2px rgba(0, 132, 135, 0.2);
+    box-shadow: 0 0 0 2px rgba(255, 107, 92, 0.25);
     outline: none;
 }
 
 /* Denise is on a desktop: compact action, not a thumb target */
 .addButton {
     background-color: var(--vera-secondary);
-    color: #ffffff;
+    color: var(--vera-primary);   /* navy on coral holds contrast; white does not */
     border: none;
     border-radius: 8px;
     padding: 10px 18px;
@@ -68,7 +68,7 @@
 }
 
 .addButton:hover {
-    background-color: #006e70;
+    background-color: #e85a48;
 }
 
 .addButton:disabled {

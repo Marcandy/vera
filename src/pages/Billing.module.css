@@ -46,9 +46,9 @@
     border-top: 2px solid var(--border);
 }
 
-/* the money line: same teal as the nav, money accent role */
+/* the money line: brand accent, money role */
 .claimsTable tfoot .amountCol {
-    color: var(--vera-secondary);
+    color: var(--vera-secondary-dark);
     font-size: 1.05rem;
 }
 
