@@ -1,8 +1,37 @@
 .shell {
     display: grid;
     grid-template-columns: 180px 1fr;
-    grid-template-rows: auto 1fr;   /* row 1: banner, row 2: sidebar + content */
+    grid-template-rows: auto 1fr auto;   /* banner, sidebar + content, footer */
     min-height: 100vh;
+}
+
+.footer {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    background-color: var(--card-bg);
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.footerLinks {
+    display: flex;
+    gap: 16px;
+}
+
+.footerLink {
+    color: var(--vera-secondary-dark);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.footerLink:hover {
+    text-decoration: underline;
 }
 
 .sidebar {
@@ -37,7 +66,7 @@
 }
 
 .navLink {
-    color: rgba(255, 255, 255, 0.9);   /* white passes contrast on the darker teal */
+    color: var(--vera-primary);   /* navy passes contrast on the light coral */
     text-decoration: none;
     padding: 9px 12px;
     border-radius: 8px;
@@ -45,13 +74,12 @@
 }
 
 .navLink:hover {
-    background-color: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.25);
 }
 
 .active {
-    background-color: #ffffff;   /* white chip + teal text pops on teal chrome */
-    color: var(--vera-secondary);
+    background-color: #ffffff;   /* white chip pops on the coral chrome */
+    color: var(--vera-secondary-dark);
     font-weight: 600;
 }
 
