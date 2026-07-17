@@ -66,3 +66,17 @@
 .patientLink:hover {
     text-decoration: underline;
 }
+
+/* phone: tighter cells, and the table scrolls sideways instead of
+   squeezing the columns unreadable */
+@media (max-width: 640px) {
+    .claimsTable {
+        display: block;
+        overflow-x: auto;
+    }
+
+    .claimsTable th,
+    .claimsTable td {
+        padding: 8px 10px;
+    }
+}

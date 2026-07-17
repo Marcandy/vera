@@ -120,3 +120,14 @@
     font-size: 0.85rem;
     padding-top: 16px;
 }
+
+/* phone: tighter frame, same single-column layout */
+@media (max-width: 640px) {
+    .page {
+        padding: 16px 20px;
+    }
+
+    .home {
+        padding: 24px 0;
+    }
+}
