@@ -6,7 +6,7 @@
     white-space: nowrap;
 }
 
-/* needs review is the only status requiring admin ACTION — it alone
+/* needs review is the only status requiring admin ACTION; it alone
    gets a solid fill so it pops against the calm pills around it */
 .needsReview { background-color: #b3261e; color: #ffffff; }
 
@@ -15,3 +15,10 @@
 .inProgress  { background-color: #d9f0ef; color: #0e6b66; }
 .scheduled   { background-color: #fdf3df; color: #8a5a09; }
 .billed      { background-color: #e7f0f8; color: #175d80; }
+
+/* document statuses share the same signal families:
+   signed = complete (green), pending = waiting (amber),
+   expiring = attention (light red; solid fill stays unique to needs review) */
+.signed   { background-color: #e3f5e9; color: #1a7f37; }
+.pending  { background-color: #fdf3df; color: #8a5a09; }
+.expiring { background-color: #fdecea; color: #a61b1b; }
