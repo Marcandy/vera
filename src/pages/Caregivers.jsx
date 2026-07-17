@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import styles from "./Caregivers.module.css";
+import StatusPill from "../components/StatusPill";
 import { addCaregiver, getCaregivers } from "../services/caregiverService";
+
+// cleared to work is derived from the documents, never stored
+const isCleared = (caregiver) =>
+    caregiver.documents.every((doc) => doc.status === "signed");
 
 const Caregivers = () => {
     const [caregiverList, setCaregiverList] = useState(null);
@@ -86,8 +91,24 @@ const Caregivers = () => {
                 <ul className={styles.roster}>
                     {caregiverList.map((caregiver) => (
                         <li key={caregiver.id} className={styles.caregiverCard}>
-                            <h4 className={styles.caregiverName}>{caregiver.name}</h4>
+                            <div className={styles.cardHeader}>
+                                <h4 className={styles.caregiverName}>{caregiver.name}</h4>
+                                {isCleared(caregiver) ? (
+                                    <span className={styles.clearedBadge}>Cleared to work</span>
+                                ) : (
+                                    <span className={styles.notClearedBadge}>Documents outstanding</span>
+                                )}
+                            </div>
                             <p className={styles.caregiverPhone}>{caregiver.phone}</p>
+
+                            <ul className={styles.docList}>
+                                {caregiver.documents.map((doc) => (
+                                    <li key={doc.name} className={styles.docRow}>
+                                        <span className={styles.docName}>{doc.name}</span>
+                                        <StatusPill status={doc.status} />
+                                    </li>
+                                ))}
+                            </ul>
                         </li>
                     ))}
                 </ul>

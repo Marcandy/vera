@@ -5,7 +5,10 @@ const STATUS_CLASSES = {
     "in progress": styles.inProgress,
     "needs review": styles.needsReview,
     "ready to bill": styles.readyToBill,
-    "billed": styles.billed
+    "billed": styles.billed,
+    "signed": styles.signed,
+    "pending": styles.pending,
+    "expiring": styles.expiring
 }
 
 const StatusPill = ({ status }) => {
