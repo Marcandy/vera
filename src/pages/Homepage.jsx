@@ -1,6 +1,7 @@
 import { useState } from "react";
 import styles from "./Homepage.module.css";
 import { useNavigate } from "react-router";
+import Footer from "../components/Footer";
 
 const Homepage = () => {
 
@@ -61,9 +62,7 @@ const Homepage = () => {
                 </form>
             </section>
 
-            <footer className={styles.pageFooter}>
-                Vera: an EVV-inspired portfolio demo. All data is fictional.
-            </footer>
+            <Footer />
         </div>
     );
 };

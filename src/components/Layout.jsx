@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router";
 import styles from "./Layout.module.css";
+import Footer from "./Footer";
 
 const navLinkClass = ({ isActive }) =>
     isActive ? `${styles.navLink} ${styles.active}` : styles.navLink;
@@ -51,19 +52,9 @@ const Layout = () => {
                 <Outlet />
             </main>
 
-            <footer className={styles.footer}>
-                <span>Vera: an EVV-inspired portfolio demo. All data is fictional.</span>
-                <nav className={styles.footerLinks}>
-                    <a
-                        className={styles.footerLink}
-                        href="https://www.medicaid.gov/medicaid/home-community-based-services/guidance/electronic-visit-verification-evv/index.html"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        What is EVV?
-                    </a>
-                </nav>
-            </footer>
+            <div className={styles.footerSlot}>
+                <Footer />
+            </div>
         </div>
     );
 };
