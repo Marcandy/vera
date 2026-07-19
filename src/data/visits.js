@@ -7,6 +7,7 @@
 // (normal), so it never blocks billing or shows as "missing".
 // estimatedCost is a NUMBER (dollars); format as currency at render.
 // MVP collapse: stored flat; later derived from hours x payer rate.
+// claimId and submittedAt exist only once a claim is submitted (billed).
 export const visits = [
     {
         id: 1,
@@ -136,6 +137,8 @@ export const visits = [
         checkOutTime: "2026-07-07T09:15",
         assessment: "Overnight recap reviewed. Breakfast and morning medications administered on schedule.",
         patientConcern: "Asked whether the same caregiver can come Fridays, prefers familiar faces.",
-        signature: "P. Jackson (daughter)"
+        signature: "P. Jackson (daughter)",
+        claimId: "clm_mock_7",
+        submittedAt: "2026-07-07T17:42"
     }
 ];

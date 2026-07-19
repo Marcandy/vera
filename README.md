@@ -33,7 +33,7 @@ scheduled → in progress → ready to bill → billed
                         ↘ needs review ↗
 ```
 
-Every transition has a cause: check-in, check-out with an evidence check, evidence supplied, charge (future). Three rules are enforced in the service layer:
+Every transition has a cause: check-in, check-out with an evidence check, evidence supplied, claim submission (future). Three rules are enforced in the service layer:
 
 1. A visit is billable only when all four pieces of evidence exist: check-in time, check-out time, assessment, signature. Anything missing routes it to needs review.
 2. Only supplying the missing evidence clears a flag. There is no admin override, because clicking a button does not create a signature.
@@ -79,5 +79,6 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 - Drawn signature capture
 - A caregiver home screen ("my visits today") and role-based views
 - Patient records: standing concerns, and prescriptions under a future skilled-care path
-- Stripe test-mode payment for verified visits
+- Real claim submission and remittance (837 and 835) to a payer or clearinghouse, replacing the mock
+- Stripe test-mode collection for private-pay clients
 - Automated tests: Vitest and React Testing Library for services and components, Playwright for the visit flow end to end
