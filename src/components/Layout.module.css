@@ -5,35 +5,6 @@
     min-height: 100vh;
 }
 
-.footer {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 24px;
-    background-color: var(--card-bg);
-    border-top: 1px solid var(--border);
-    color: var(--text-muted);
-    font-size: 0.85rem;
-}
-
-.footerLinks {
-    display: flex;
-    gap: 16px;
-}
-
-.footerLink {
-    color: var(--vera-secondary-dark);
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.footerLink:hover {
-    text-decoration: underline;
-}
-
 .sidebar {
     background-color: var(--vera-secondary);
     padding: 20px 14px;
@@ -105,6 +76,12 @@
     padding: 24px 32px;
 }
 
+/* the footer's own look lives in Footer.module.css; the shell only
+   owns where it sits: full width across the grid */
+.footerSlot {
+    grid-column: 1 / -1;
+}
+
 /* tablet: same two-column layout, tighter chrome */
 @media (max-width: 900px) {
     .shell {
@@ -141,9 +118,9 @@
         grid-row: 3;
     }
 
-    .footer {
+    /* pin to the last row so the hidden sidebar's empty slot cannot
+       pull the footer up above the content */
+    .footerSlot {
         grid-row: 4;
-        justify-content: center;
-        text-align: center;
     }
 }
