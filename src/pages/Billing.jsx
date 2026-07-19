@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { getVisits } from "../services/visitService";
+import { getVisits, submitClaim } from "../services/visitService";
 import styles from "./Billing.module.css";
 
 const formatDate = (isoString) =>
@@ -15,20 +15,24 @@ const formatCurrency = (amount) =>
 const hoursBetween = (checkIn, checkOut) =>
     ((new Date(checkOut) - new Date(checkIn)) / 3600000).toFixed(1);
 
+const sumCost = (list) => list.reduce((sum, visit) => sum + visit.estimatedCost, 0);
+
 const Billing = () => {
 
     const [ readyToBillVisits, setReadyToBill] = useState(null);
+    const [ billedVisits, setBilled ] = useState([]);
     // loading guardrail
     const [ loading, setLoading ] = useState(true);
+    // id of the claim currently in flight, or null; drives the row's pending state
+    const [ submittingId, setSubmittingId ] = useState(null);
+    const [ submitError, setSubmitError ] = useState(null);
+    const [ submitSuccess, setSubmitSuccess ] = useState(null);
 
     useEffect(() => {
         async function fetchVisits () {
             const results = await getVisits();
-            const filteredVisit = results.filter((visit) => {
-                return visit.status === "ready to bill"
-            })
-
-            setReadyToBill(filteredVisit);
+            setReadyToBill(results.filter((visit) => visit.status === "ready to bill"));
+            setBilled(results.filter((visit) => visit.status === "billed"));
             setLoading(false);
         }
 
@@ -36,64 +40,130 @@ const Billing = () => {
 
     }, [])
 
-    if (loading) return <p>Loading...</p>
-
-    if (readyToBillVisits.length === 0) {
-        return (
-            <section className={styles.billing}>
-                <h3>Billing</h3>
-                <p className={styles.emptyState}>
-                    No visits are ready to bill yet. Verified visits appear
-                    here once their evidence is complete.
-                </p>
-            </section>
-        );
+    async function handleSubmitClaim(id) {
+        setSubmitError(null);
+        setSubmitSuccess(null);
+        setSubmittingId(id);
+        try {
+            const billedVisit = await submitClaim(id);
+            // move it: out of ready-to-bill, into billed (newest on top)
+            setReadyToBill((prev) => prev.filter((visit) => visit.id !== id));
+            setBilled((prev) => [billedVisit, ...prev]);
+            setSubmitSuccess(
+                `Claim ${billedVisit.claimId} submitted for ${billedVisit.patientName} (${formatCurrency(billedVisit.estimatedCost)})`
+            );
+        } catch (err) {
+            setSubmitError(err.message);
+        } finally {
+            setSubmittingId(null);
+        }
     }
 
-    const total = readyToBillVisits.reduce(
-        (sum, visit) => sum + visit.estimatedCost, 0
-    );
+    if (loading) return <p>Loading...</p>
 
     return (
         <section className={styles.billing}>
             <h3>Billing</h3>
 
-            <table className={styles.claimsTable}>
-                <thead>
-                    <tr>
-                        <th>Patient</th>
-                        <th>Date</th>
-                        <th className={styles.amountCol}>Hours</th>
-                        <th className={styles.amountCol}>Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {readyToBillVisits.map((visit) => (
-                        <tr key={visit.id}>
-                            <td>
-                                <Link to={`/visits/${visit.id}`} className={styles.patientLink}>
-                                    {visit.patientName}
-                                </Link>
-                            </td>
-                            <td>{formatDate(visit.appointmentTime)}</td>
-                            <td className={styles.amountCol}>
-                                {hoursBetween(visit.checkInTime, visit.checkOutTime)}
-                            </td>
-                            <td className={styles.amountCol}>
-                                {formatCurrency(visit.estimatedCost)}
-                            </td>
+            {submitError && <p className={styles.errorNote}>{submitError}</p>}
+            {submitSuccess && <p className={styles.successNote}>{submitSuccess}</p>}
+
+            <h4 className={styles.subheading}>Ready to bill</h4>
+            {readyToBillVisits.length === 0 ? (
+                <p className={styles.emptyState}>
+                    No visits are ready to bill yet. Verified visits appear
+                    here once their evidence is complete.
+                </p>
+            ) : (
+                <table className={styles.claimsTable}>
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Date</th>
+                            <th className={styles.amountCol}>Hours</th>
+                            <th className={styles.amountCol}>Amount</th>
+                            <th></th>
                         </tr>
-                    ))}
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colSpan={3}>
-                            Total ({readyToBillVisits.length} visit{readyToBillVisits.length > 1 ? "s" : ""})
-                        </td>
-                        <td className={styles.amountCol}>{formatCurrency(total)}</td>
-                    </tr>
-                </tfoot>
-            </table>
+                    </thead>
+                    <tbody>
+                        {readyToBillVisits.map((visit) => (
+                            <tr key={visit.id}>
+                                <td>
+                                    <Link to={`/visits/${visit.id}`} className={styles.patientLink}>
+                                        {visit.patientName}
+                                    </Link>
+                                </td>
+                                <td>{formatDate(visit.appointmentTime)}</td>
+                                <td className={styles.amountCol}>
+                                    {hoursBetween(visit.checkInTime, visit.checkOutTime)}
+                                </td>
+                                <td className={styles.amountCol}>
+                                    {formatCurrency(visit.estimatedCost)}
+                                </td>
+                                <td className={styles.actionCol}>
+                                    <button
+                                        type="button"
+                                        className={styles.submitButton}
+                                        onClick={() => handleSubmitClaim(visit.id)}
+                                        disabled={submittingId === visit.id}
+                                    >
+                                        {submittingId === visit.id ? "Submitting..." : "Submit claim"}
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colSpan={3}>
+                                Total ({readyToBillVisits.length} visit{readyToBillVisits.length > 1 ? "s" : ""})
+                            </td>
+                            <td className={styles.amountCol}>{formatCurrency(sumCost(readyToBillVisits))}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            )}
+
+            {billedVisits.length > 0 && (
+                <>
+                    <h4 className={styles.subheading}>Submitted claims</h4>
+                    <table className={styles.claimsTable}>
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Claim ref</th>
+                                <th>Submitted</th>
+                                <th className={styles.amountCol}>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {billedVisits.map((visit) => (
+                                <tr key={visit.id}>
+                                    <td>
+                                        <Link to={`/visits/${visit.id}`} className={styles.patientLink}>
+                                            {visit.patientName}
+                                        </Link>
+                                    </td>
+                                    <td className={styles.claimRef}>{visit.claimId}</td>
+                                    <td>{formatDate(visit.submittedAt)}</td>
+                                    <td className={styles.amountCol}>
+                                        {formatCurrency(visit.estimatedCost)}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colSpan={3}>
+                                    Total ({billedVisits.length} claim{billedVisits.length > 1 ? "s" : ""})
+                                </td>
+                                <td className={styles.amountCol}>{formatCurrency(sumCost(billedVisits))}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </>
+            )}
         </section>
     );
 }

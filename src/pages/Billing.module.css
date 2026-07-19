@@ -15,6 +15,14 @@
     padding: 24px;
 }
 
+/* section label under the page title; the billed one gets breathing room
+   above it to separate the two tables */
+.subheading {
+    margin: 24px 0 12px;
+    font-size: 1rem;
+    color: var(--vera-primary-dark);
+}
+
 .claimsTable {
     width: 100%;
     border-collapse: collapse;
@@ -65,6 +73,58 @@
 
 .patientLink:hover {
     text-decoration: underline;
+}
+
+/* action column: keep the button on one line, hard against the right edge */
+.claimsTable .actionCol {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.submitButton {
+    background-color: var(--vera-secondary);
+    color: var(--vera-primary);   /* navy on coral holds contrast; white does not */
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.submitButton:hover {
+    background-color: #e85a48;
+}
+
+.submitButton:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.errorNote {
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    background-color: #fdecea;
+    border: 1px solid #f0b9b4;
+    border-radius: 8px;
+    color: #a61b1b;
+    font-size: 0.9rem;
+}
+
+/* green family: money-positive, same signal as ready-to-bill */
+.successNote {
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    background-color: #e9f7ee;
+    border: 1px solid #b7e0c0;
+    border-radius: 8px;
+    color: #1a7f37;
+    font-size: 0.9rem;
+}
+
+.claimRef {
+    color: var(--text-muted);
+    font-size: 0.85rem;
 }
 
 /* phone: tighter cells, and the table scrolls sideways instead of
