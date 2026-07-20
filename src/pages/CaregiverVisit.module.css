@@ -6,7 +6,7 @@
 .backLink {
     display: inline-block;
     margin-bottom: 16px;
-    color: var(--vera-primary);
+    color: var(--vera-secondary-dark);
     text-decoration: none;
     font-size: 0.9rem;
 }
@@ -57,17 +57,18 @@
     display: block;
     width: 100%;
     min-height: 56px;
-    background-color: var(--vera-secondary);
-    color: var(--vera-primary);   /* navy on coral holds contrast; white does not */
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
     border: none;
     border-radius: 12px;
     font-size: 1.15rem;
     font-weight: 600;
     cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
 .checkInButton:hover {
-    background-color: #e85a48;
+    background-color: var(--btn-hover);
 }
 
 .checkInButton:active {
@@ -144,7 +145,7 @@ textarea.fieldInput {
 
 .fieldInput:focus {
     border-color: var(--vera-secondary);
-    box-shadow: 0 0 0 2px rgba(255, 107, 92, 0.25);
+    box-shadow: 0 0 0 2px var(--focus-ring);
     outline: none;
 }
 

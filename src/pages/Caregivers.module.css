@@ -51,14 +51,14 @@
 
 .fieldInput:focus {
     border-color: var(--vera-secondary);
-    box-shadow: 0 0 0 2px rgba(255, 107, 92, 0.25);
+    box-shadow: 0 0 0 2px var(--focus-ring);
     outline: none;
 }
 
 /* Denise is on a desktop: compact action, not a thumb target */
 .addButton {
-    background-color: var(--vera-secondary);
-    color: var(--vera-primary);   /* navy on coral holds contrast; white does not */
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
     border: none;
     border-radius: 8px;
     padding: 10px 18px;
@@ -68,7 +68,7 @@
 }
 
 .addButton:hover {
-    background-color: #e85a48;
+    background-color: var(--btn-hover);
 }
 
 .addButton:disabled {
@@ -176,7 +176,7 @@
     padding: 24px;
 }
 
-/* doc signing: quiet row action, coral only on the confirm */
+/* doc signing: quiet row action, accent color only on the confirm */
 .signButton {
     background-color: #ffffff;
     color: var(--vera-primary);
@@ -208,8 +208,8 @@
 }
 
 .captureButton {
-    background-color: var(--vera-secondary);
-    color: var(--vera-primary);   /* navy on coral holds contrast; white does not */
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
     border: none;
     border-radius: 6px;
     padding: 6px 12px;
@@ -219,7 +219,7 @@
 }
 
 .captureButton:hover {
-    background-color: #e85a48;
+    background-color: var(--btn-hover);
 }
 
 .captureButton:disabled {
