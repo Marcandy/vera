@@ -40,6 +40,14 @@ const Billing = () => {
 
     }, [])
 
+    // auto-dismiss the success banner; cleanup cancels the old timer if a
+    // new submit replaces the message or the page unmounts
+    useEffect(() => {
+        if (!submitSuccess) return;
+        const timer = setTimeout(() => setSubmitSuccess(null), 7000);
+        return () => clearTimeout(timer);
+    }, [submitSuccess])
+
     async function handleSubmitClaim(id) {
         setSubmitError(null);
         setSubmitSuccess(null);
