@@ -26,3 +26,10 @@
     box-shadow: 0 0 0 2px rgba(255, 107, 92, 0.25);
     outline: none;
 }
+
+/* the hint is instruction, not a signature: keep it in the UI font */
+.signatureInput::placeholder {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
