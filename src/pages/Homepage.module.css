@@ -51,7 +51,7 @@
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 24px;
-    animation: cardIn 0.4s ease-out 0.1s backwards;
+    animation: cardIn 0.4s ease-out 0.3s backwards;
 }
 
 /* no "to" block: it settles at the element's own resting styles */

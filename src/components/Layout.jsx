@@ -22,7 +22,7 @@ const Layout = () => {
                     <svg className={styles.logo} viewBox="0 0 140 100" aria-hidden="true">
                         <rect x="8" y="18" width="124" height="64" rx="32" fill="none" stroke="#ffffff" strokeOpacity="0.55" strokeWidth="6" />
                         <path d="M 44 50 L 64 70" fill="none" stroke="#3dccc7" strokeWidth="11" strokeLinecap="round" />
-                        <path d="M 64 70 L 102 32" fill="none" stroke="#ffffff" strokeWidth="11" strokeLinecap="round" />
+                        <path d="M 64 70 L 102 32" fill="none" stroke="#820263" strokeWidth="11" strokeLinecap="round" />
                         <circle cx="64" cy="70" r="7" fill="#ffffff" />
                         <circle cx="64" cy="70" r="4" fill="#3dccc7" />
                     </svg>
