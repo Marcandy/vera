@@ -1,7 +1,7 @@
 import styles from "./SignatureField.module.css";
 
 
-const SignatureField = ({ id, label, value, onChange}) => {
+const SignatureField = ({ id, label, value, onChange, placeholder }) => {
     return (
         <div className={styles.field}>
             <label className={styles.fieldLabel} htmlFor={id}>
@@ -11,9 +11,10 @@ const SignatureField = ({ id, label, value, onChange}) => {
                 id={id}
                 type="text"
                 autoComplete="off"
-                className={styles.SignatureInput}
+                className={styles.signatureInput}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
+                placeholder={placeholder}
             />
         </div>
     ); 

@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router";
 import StatusPill from "../components/StatusPill";
 import { checkInVisit, checkOutVisit, getVisitById, supplyEvidence } from "../services/visitService";
 import styles from "./CaregiverVisit.module.css";
+import SignatureField from "../components/SignatureField";
 
 const formatDateTime = (isoString) =>
     new Date(isoString).toLocaleString("en-US", {
@@ -156,14 +157,12 @@ const CaregiverVisit = () => {
                             onChange={(e) => setAssessment(e.target.value)}
                         />
 
-                        <label className={styles.fieldLabel} htmlFor="signature">Patient signature (typed)</label>
-                        <input
+                        <SignatureField
                             id="signature"
-                            type="text"
-                            className={styles.fieldInput}
-                            placeholder="Patient types their full name"
+                            label="Patient signature (typed)"
                             value={signature}
-                            onChange={(e) => setSignature(e.target.value)}
+                            onChange={setSignature}
+                            placeholder="Patient types their full name"
                         />
 
                         {/* warning state for signature*/
@@ -213,14 +212,12 @@ const CaregiverVisit = () => {
 
                         {visit.signature === null && (
                             <>
-                                <label className={styles.fieldLabel} htmlFor="signature">Patient signature (typed)</label>
-                                <input
+                                <SignatureField
                                     id="signature"
-                                    type="text"
-                                    className={styles.fieldInput}
-                                    placeholder="Patient types their full name"
+                                    label="Patient signature (typed)"
                                     value={signature}
-                                    onChange={(e) => setSignature(e.target.value)}
+                                    onChange={setSignature}
+                                    placeholder="Patient types their full name"
                                 />
                             </>
                         )}
