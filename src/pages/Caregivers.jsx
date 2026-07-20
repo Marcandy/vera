@@ -141,7 +141,7 @@ const Caregivers = () => {
                                                 )}
                                                 <span className={styles.rowActions}>
                                                     <StatusPill status={doc.status} />
-                                                    {doc.status !== "signed" && (
+                                                    {doc.status === "pending" && (
                                                         <button
                                                             type="button"
                                                             className={styles.signButton}

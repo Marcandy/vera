@@ -41,8 +41,9 @@ export const signDocument = async (caregiverId, documentName, signature) => {
         throw new Error(`Document ${documentName} not found`);
     }
     
-    if (doc.status === 'signed') {
-        throw new Error(`${documentName} is already signed`);
+    // only pending docs are signable; expiring needs a renewal flow, not a signature
+    if (doc.status !== 'pending') {
+        throw new Error(`Cannot sign a document that is ${doc.status}`);
     }
 
     if (!signature?.trim()) {
