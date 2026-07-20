@@ -1,6 +1,6 @@
 # Vera
 
-Home care agency management built around one idea: a caregiver's verified visit should become a billing-ready record without anyone chasing paperwork. Verified care becomes money.
+Vera is a workspace for small home care agencies: one place to manage visits, caregivers, and the record of care each patient receives. Every visit is backed by evidence (who was there, when, and what care was delivered), so the moment a visit is verified, the claim is ready to submit. No chasing paperwork, no double data entry.
 
 ## Why
 
@@ -16,8 +16,8 @@ The visit verification core is modeled on Electronic Visit Verification (EVV), w
 
 - Dashboard: every visit with its pipeline status, needs-review visits first
 - Visit detail: check-in and check-out times, assessment, and signature; a flagged visit derives and lists exactly what evidence is missing
-- Billing: ready-to-bill visits with hours worked and estimated cost, totaled into a claims table
-- Caregivers: team roster, add-caregiver form, and a per-caregiver onboarding document checklist (signed, pending, expiring) with a derived cleared-to-work badge
+- Billing: ready-to-bill visits with hours worked and estimated cost, one-click mock claim submission, and a submitted-claims register with claim references
+- Caregivers: team roster, add-caregiver form, and a per-caregiver onboarding document checklist (signed, pending, expiring) with a derived cleared-to-work badge; pending documents accept a cursive signature capture
 
 **For the caregiver (phone-width surface, one primary action per screen):**
 
@@ -26,6 +26,12 @@ The visit verification core is modeled on Electronic Visit Verification (EVV), w
 - Checking out without a signature warns first, then flags the visit for review instead of blocking the caregiver from leaving
 - Missing evidence can be supplied later, which is the only way a flagged visit becomes billable
 
+**Around the app:**
+
+- Home: product intro and a simulated sign-in (no account needed)
+- About: the home care industry in numbers, from cited primary sources
+- Responsive layout: tablet breakpoint, and a phone breakpoint where the sidebar collapses behind a menu button
+
 ## The visit pipeline
 
 ```
@@ -33,7 +39,7 @@ scheduled → in progress → ready to bill → billed
                         ↘ needs review ↗
 ```
 
-Every transition has a cause: check-in, check-out with an evidence check, evidence supplied, claim submission (future). Three rules are enforced in the service layer:
+Every transition has a cause: check-in, check-out with an evidence check, evidence supplied, claim submission. Three rules are enforced in the service layer:
 
 1. A visit is billable only when all four pieces of evidence exist: check-in time, check-out time, assessment, signature. Anything missing routes it to needs review.
 2. Only supplying the missing evidence clears a flag. There is no admin override, because clicking a button does not create a signature.
@@ -43,7 +49,7 @@ Every transition has a cause: check-in, check-out with an evidence check, eviden
 
 - Vite + React (JavaScript), React Router, CSS Modules. No UI libraries.
 - All data access goes through a service layer (`src/services`). Components never import mock data directly. The services expose async functions with realistic latency, so a real backend can replace the mock internals without changing a single component.
-- Mutations are domain verbs (`checkInVisit`, `checkOutVisit`, `supplyEvidence`, `addCaregiver`), and state transition rules live inside them, not in components.
+- Mutations are domain verbs (`checkInVisit`, `checkOutVisit`, `supplyEvidence`, `submitClaim`, `addCaregiver`, `signDocument`), and state transition rules live inside them, not in components.
 - Derived state over stored flags: the missing-evidence panel and the cleared-to-work badge are computed from the data at render time, so they can never disagree with the record.
 
 ## Running locally
@@ -69,6 +75,11 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 | Add caregiver | Submit the form with name and phone | Caregiver appears in the roster with pending documents; form clears |
 | Add caregiver, blank name | Submit with no name | Inline error from the service; nothing added |
 | Unknown routes | Visit a bad URL or a bad visit id | 404 page inside the app shell; not-found message with a way back |
+| Demo sign-in | From the home page, submit the sign-in form | Lands on the dashboard |
+| Submit claim | On Billing, submit a ready-to-bill claim | Confirmation with a claim reference; row moves to Submitted claims; both totals update |
+| Sign document | On Caregivers, sign a pending document | Signature renders in cursive; pill flips to signed; badge flips to cleared when it was the last one |
+| Expiring document | Check an expiring document's row | No Sign button; expiring is not signable by design |
+| Responsive | Narrow the window below 640px | Sidebar collapses behind the menu button; menu opens, navigates, and closes |
 
 ## Roadmap
 
@@ -77,6 +88,7 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 - Persistence: localStorage first, then a real API behind the same service contracts
 - Real browser geolocation at check-in, with a mock fallback for bad signal
 - Drawn signature capture
+- Document expiration dates, with the expiring status derived from them and a renewal flow
 - A caregiver home screen ("my visits today") and role-based views
 - Patient records: standing concerns, and prescriptions under a future skilled-care path
 - Real claim submission and remittance (837 and 835) to a payer or clearinghouse, replacing the mock
