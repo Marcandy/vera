@@ -4,16 +4,7 @@ import StatusPill from "../components/StatusPill";
 import { checkInVisit, checkOutVisit, getVisitById, supplyEvidence } from "../services/visitService";
 import styles from "./CaregiverVisit.module.css";
 import SignatureField from "../components/SignatureField";
-
-const formatDateTime = (isoString) =>
-    new Date(isoString).toLocaleString("en-US", {
-        month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
-    });
-
-const formatTime = (isoString) =>
-    isoString
-        ? new Date(isoString).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
-        : "—";
+import { formatDateTime, formatTime } from "../utils/format";
 
 // Evidence fields for the needs-review supply panel, in pipeline order.
 // Duplicated from VisitDetail for now; extraction is a parked card.

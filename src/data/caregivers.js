@@ -39,5 +39,27 @@ export const caregivers = [
             { name: "CPR Certification", status: "signed" },
             { name: "TB Test", status: "signed" }
         ]
+    },
+    {
+        id: 4,
+        name: "Luis Rivera",
+        phone: "215-555-0163",
+        documents: [
+            { name: "State ID", status: "signed" },
+            { name: "Background Check", status: "pending" },
+            { name: "CPR Certification", status: "pending" },
+            { name: "TB Test", status: "pending" }
+        ]
+    },
+    {
+        id: 5,
+        name: "Angela Brooks",
+        phone: "215-555-0129",
+        documents: [
+            { name: "State ID", status: "signed" },
+            { name: "Background Check", status: "signed" },
+            { name: "CPR Certification", status: "pending" },
+            { name: "TB Test", status: "expiring" }
+        ]
     }
 ];

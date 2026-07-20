@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router';
 import StatusPill from '../components/StatusPill';
 import { getVisitById } from '../services/visitService';
+import { formatDateTime, formatTime } from '../utils/format';
 import styles from './VisitDetail.module.css';
 
 // Evidence fields checked for the needs-review panel, in pipeline order.
@@ -12,16 +13,6 @@ const EVIDENCE_LABELS = [
     { field: 'assessment', label: 'Visit assessment' },
     { field: 'signature', label: 'Patient signature' },
 ];
-
-const formatDateTime = (isoString) =>
-    new Date(isoString).toLocaleString('en-US', {
-        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-    });
-
-const formatTime = (isoString) =>
-    isoString
-        ? new Date(isoString).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-        : '—';
 
 const VisitDetail = () => {
     const { visitId } = useParams();
