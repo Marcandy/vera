@@ -8,6 +8,7 @@ import Caregivers from './pages/Caregivers';
 import NotFound from './pages/NotFound';
 import CaregiverVisit from './pages/CaregiverVisit';
 import Homepage from './pages/Homepage';
+import About from './pages/About';
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
                 <Route path="/billing" element={<Billing />} />
                 <Route path="/caregivers" element={<Caregivers />} />
                 <Route path="/caregiver/visits/:visitId" element={<CaregiverVisit />} />
+                <Route path="/about" element={<About />} />
                 <Route path="*" element={<NotFound />} />
             </Route>
       </Routes>

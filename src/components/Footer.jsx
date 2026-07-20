@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import styles from "./Footer.module.css";
 
 
@@ -7,7 +8,8 @@ const Footer = () => {
             <span>© {new Date().getFullYear()} Vera. An EVV-inspired portfolio demo; all data is fictional.</span>
 
             <nav className={styles.footerLinks}>
-                <a 
+                <Link to="/about" className={styles.footerLink}>About</Link>
+                <a
                     className={styles.footerLink}
                     href="https://www.medicaid.gov/medicaid/home-community-based-services/guidance/electronic-visit-verification-evv/index.html"
                     target="_blank"
