@@ -23,7 +23,7 @@
 
 .signatureInput:focus {
     border-color: var(--vera-secondary);
-    box-shadow: 0 0 0 2px rgba(255, 107, 92, 0.25);
+    box-shadow: 0 0 0 2px var(--focus-ring);
     outline: none;
 }
 

@@ -67,7 +67,7 @@
 }
 
 .patientLink {
-    color: var(--vera-primary);
+    color: var(--vera-secondary-dark);
     text-decoration: none;
 }
 
@@ -82,8 +82,8 @@
 }
 
 .submitButton {
-    background-color: var(--vera-secondary);
-    color: var(--vera-primary);   /* navy on coral holds contrast; white does not */
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
     border: none;
     border-radius: 6px;
     padding: 6px 12px;
@@ -93,7 +93,7 @@
 }
 
 .submitButton:hover {
-    background-color: #e85a48;
+    background-color: var(--btn-hover);
 }
 
 .submitButton:disabled {

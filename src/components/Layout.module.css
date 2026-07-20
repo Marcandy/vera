@@ -55,7 +55,7 @@
 }
 
 .navLink {
-    color: var(--vera-primary);   /* navy passes contrast on the light coral */
+    color: var(--chrome-text);   /* palette decides what passes on the chrome */
     text-decoration: none;
     padding: 9px 12px;
     border-radius: 8px;
@@ -67,7 +67,7 @@
 }
 
 .active {
-    background-color: #ffffff;   /* white chip pops on the coral chrome */
+    background-color: #ffffff;   /* white chip pops on the light chrome */
     color: var(--vera-secondary-dark);
     font-weight: 600;
 }

@@ -13,7 +13,7 @@
 }
 
 .homeLink {
-    color: var(--vera-primary);
+    color: var(--vera-secondary-dark);
     text-decoration: none;
     font-weight: 600;
 }
