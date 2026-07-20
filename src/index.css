@@ -9,6 +9,8 @@
     --vera-primary-dark: #141d33;   /* derived darker navy for headings */
     --vera-secondary: #ff6b5c;      /* warm coral (experiment) */
     --vera-secondary-dark: #c94434; /* text-safe coral for light backgrounds */
+    /* add the signature font token here: */
+    --font-signature: "Segoe Script", "Brush Script MT", cursive;
     --bg: #f4f7f9;
     --card-bg: #ffffff;
     --border: #dfe7ec;

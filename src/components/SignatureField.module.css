@@ -1,0 +1,28 @@
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.fieldLabel {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* font-family must come AFTER font: inherit; the shorthand resets it */
+.signatureInput {
+    font: inherit;
+    font-family: var(--font-signature);
+    font-size: 1.1rem;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background-color: #ffffff;
+}
+
+.signatureInput:focus {
+    border-color: var(--vera-secondary);
+    box-shadow: 0 0 0 2px rgba(255, 107, 92, 0.25);
+    outline: none;
+}

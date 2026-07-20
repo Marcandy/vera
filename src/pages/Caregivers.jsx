@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import styles from "./Caregivers.module.css";
 import StatusPill from "../components/StatusPill";
-import { addCaregiver, getCaregivers } from "../services/caregiverService";
+import SignatureField from "../components/SignatureField";
+import { addCaregiver, getCaregivers, signDocument } from "../services/caregiverService";
 
 // cleared to work is derived from the documents, never stored
 const isCleared = (caregiver) =>
@@ -14,6 +15,12 @@ const Caregivers = () => {
     const [adding, setAdding] = useState(false);
     const [firstLast, setFirstLast] = useState("");
     const [phone, setPhone] = useState("");
+
+    // which row's sign form is open: null or { caregiverId, docName }, one at a time
+    const [signingDoc, setSigningDoc] = useState(null);
+    const [signatureValue, setSignatureValue] = useState("");
+    const [signing, setSigning] = useState(false);
+    const [signError, setSignError] = useState(null);
 
     useEffect(()=> {
         let stale = false;
@@ -43,12 +50,30 @@ const Caregivers = () => {
         }
     }
 
+    async function handleSignDocument(caregiverId, docName) {
+        setSignError(null);
+        setSigning(true);
+
+        try {
+            const updated = await signDocument(caregiverId, docName, signatureValue);
+            setCaregiverList((prev) =>
+                prev.map((c) => (c.id === updated.id ? updated : c))
+            )
+            setSigningDoc(null);
+            setSignatureValue("");
+        } catch (err) {
+            setSignError(err.message);
+        } finally {
+            setSigning(false);
+        }
+    }
+
     if (caregiverList === null) return (<p>Loading...</p>);
 
     return (
         <section className={styles.caregivers}>
             <h3 className={styles.title}>Caregivers</h3>
-
+            
             <form className={styles.addForm} onSubmit={handleAddCaregiver}>
                 <h4 className={styles.addTitle}>Add a caregiver</h4>
                 <div className={styles.fieldRow}>
@@ -102,12 +127,67 @@ const Caregivers = () => {
                             <p className={styles.caregiverPhone}>{caregiver.phone}</p>
 
                             <ul className={styles.docList}>
-                                {caregiver.documents.map((doc) => (
-                                    <li key={doc.name} className={styles.docRow}>
-                                        <span className={styles.docName}>{doc.name}</span>
-                                        <StatusPill status={doc.status} />
-                                    </li>
-                                ))}
+                                {caregiver.documents.map((doc) => {
+                                    const isSigningThis =
+                                        signingDoc?.caregiverId === caregiver.id &&
+                                        signingDoc?.docName === doc.name;
+
+                                    return (
+                                        <li key={doc.name} className={styles.docRow}>
+                                            <div className={styles.docRowLine}>
+                                                <span className={styles.docName}>{doc.name}</span>
+                                                {doc.signature && (
+                                                    <span className={styles.signedName}>{doc.signature}</span>
+                                                )}
+                                                <span className={styles.rowActions}>
+                                                    <StatusPill status={doc.status} />
+                                                    {doc.status !== "signed" && (
+                                                        <button
+                                                            type="button"
+                                                            className={styles.signButton}
+                                                            onClick={() => {
+                                                                setSigningDoc({ caregiverId: caregiver.id, docName: doc.name });
+                                                                setSignatureValue("");
+                                                                setSignError(null);
+                                                            }}
+                                                        >
+                                                            Sign
+                                                        </button>
+                                                    )}
+                                                </span>
+                                            </div>
+
+                                            {isSigningThis && (
+                                                <div className={styles.signForm}>
+                                                    <SignatureField
+                                                        id={`sign-${caregiver.id}-${doc.name}`}
+                                                        label={`Signature for ${doc.name}`}
+                                                        value={signatureValue}
+                                                        onChange={setSignatureValue}
+                                                    />
+                                                    {signError && <p className={styles.errorNote}>{signError}</p>}
+                                                    <div className={styles.signActions}>
+                                                        <button
+                                                            type="button"
+                                                            className={styles.captureButton}
+                                                            onClick={() => handleSignDocument(caregiver.id, doc.name)}
+                                                            disabled={signing}
+                                                        >
+                                                            {signing ? "Capturing..." : "Capture signature"}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className={styles.cancelButton}
+                                                            onClick={() => setSigningDoc(null)}
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         </li>
                     ))}
