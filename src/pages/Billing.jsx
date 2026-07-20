@@ -1,19 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { getVisits, submitClaim } from "../services/visitService";
+import { formatDateTime, formatCurrency, hoursBetween } from "../utils/format";
 import styles from "./Billing.module.css";
-
-const formatDate = (isoString) =>
-    new Date(isoString).toLocaleString("en-US", {
-        month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
-    });
-
-const formatCurrency = (amount) =>
-    amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
-
-// hours between two ISO strings; Date minus Date yields milliseconds
-const hoursBetween = (checkIn, checkOut) =>
-    ((new Date(checkOut) - new Date(checkIn)) / 3600000).toFixed(1);
 
 const sumCost = (list) => list.reduce((sum, visit) => sum + visit.estimatedCost, 0);
 
@@ -101,7 +90,7 @@ const Billing = () => {
                                         {visit.patientName}
                                     </Link>
                                 </td>
-                                <td>{formatDate(visit.appointmentTime)}</td>
+                                <td>{formatDateTime(visit.appointmentTime)}</td>
                                 <td className={styles.amountCol}>
                                     {hoursBetween(visit.checkInTime, visit.checkOutTime)}
                                 </td>
@@ -154,7 +143,7 @@ const Billing = () => {
                                         </Link>
                                     </td>
                                     <td className={styles.claimRef}>{visit.claimId}</td>
-                                    <td>{formatDate(visit.submittedAt)}</td>
+                                    <td>{formatDateTime(visit.submittedAt)}</td>
                                     <td className={styles.amountCol}>
                                         {formatCurrency(visit.estimatedCost)}
                                     </td>

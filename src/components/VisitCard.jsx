@@ -1,10 +1,6 @@
 import StatusPill from './StatusPill';
+import { formatDateTime } from '../utils/format';
 import styles from './VisitCard.module.css';
-
-const formatAppointment = (isoString) =>
-    new Date(isoString).toLocaleString("en-US", {
-        month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
-    });
 
 const VisitCard = ({ visit }) => {
     return (
@@ -15,7 +11,7 @@ const VisitCard = ({ visit }) => {
                 <dd>{visit.caregiverName}</dd>
 
                 <dt>Appointment</dt>
-                <dd>{formatAppointment(visit.appointmentTime)}</dd>
+                <dd>{formatDateTime(visit.appointmentTime)}</dd>
             </dl>
 
             <StatusPill status={visit.status}/>
