@@ -14,6 +14,11 @@ dist-ssr
 INTERVIEW-NOTES.md
 CLAUDE.local.md
 
+reviewcode.jsx
+presentation2.md
+presentation.md
+tech-review.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
