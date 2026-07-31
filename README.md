@@ -2,6 +2,8 @@
 
 Vera is a workspace for small home care agencies: one place to manage visits, caregivers, and the record of care each patient receives. Every visit is backed by evidence (who was there, when, and what care was delivered), so the moment a visit is verified, the claim is ready to submit. No chasing paperwork, no double data entry.
 
+**Live demo:** [vera-homecare.vercel.app](https://vera-homecare.vercel.app)
+
 ## Why
 
 Small home care agencies mostly run on software that is broad, expensive, and disconnected. From interviews with agency owners in Philadelphia, their top pain points were managing caregiver onboarding documents, knowing when caregivers are actually with patients, and collecting patient signatures. Vera focuses on one clean, connected flow from scheduled visit to billable record, built caregiver-first, because caregivers are the bulk of the workforce and the source of every record the office depends on.
@@ -83,7 +85,6 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 
 ## Roadmap
 
-- Deploy to Vercel
 - A distinct status between verified and billable once payer and authorization rules arrive with a real backend
 - Persistence: localStorage first, then a real API behind the same service contracts
 - Real browser geolocation at check-in, with a mock fallback for bad signal

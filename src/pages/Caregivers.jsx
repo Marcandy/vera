@@ -31,7 +31,7 @@ const Caregivers = () => {
             }
         }
         fetchGiverData();
-        return () => { stale = true };
+        return () => { stale = true }; // prevent old data saved updated in state when component is unmounted
     }, [])
 
     async function handleAddCaregiver(e) {
