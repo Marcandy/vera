@@ -4,6 +4,32 @@ import styles from "./Dashboard.module.css";
 import { getVisits } from "../services/visitService";
 import { useEffect, useState } from "react";
 
+// Denise's attention order, lowest rank first. This is a property of THIS
+// screen, not of the collection, so it lives here and not in the service:
+// the first two need her to act, the rest are just status.
+const STATUS_RANK = {
+    "needs review": 0,
+    "ready to bill": 1,
+    "in progress": 2,
+    "scheduled": 3,
+    "billed": 4,
+};
+
+// An unrecognized status means a broken pipeline, not a real position.
+// It parks at the end; StatusPill is what fails visibly, by rendering bare.
+const RANK_UNKNOWN = Number.MAX_SAFE_INTEGER;
+
+// Tiebreak oldest appointment first: the longest-waiting visit is the most
+// urgent one in its group. ISO strings compare lexicographically, which is
+// the reason the visit shape stores them as strings.
+const byAttention = (a, b) => {
+    const rankDiff =
+        (STATUS_RANK[a.status] ?? RANK_UNKNOWN) - (STATUS_RANK[b.status] ?? RANK_UNKNOWN);
+
+    if (rankDiff !== 0) return rankDiff;
+
+    return a.appointmentTime.localeCompare(b.appointmentTime);
+};
 
 const Dashboard = () => {
     const [ visitList, setVisitList ] = useState(null);
@@ -29,12 +55,16 @@ const Dashboard = () => {
         );
     }
 
+    // Sort a COPY. getVisits() hands back the live seed array, so sorting in
+    // place would reorder the data source every component reads from.
+    const orderedVisits = [...visitList].sort(byAttention);
+
     return (
         <section className={styles.dashboard}>
             <h3>Visits</h3>
 
             <ul className={styles.visitList}>
-                {visitList.map((visit) => (
+                {orderedVisits.map((visit) => (
                     <li key={visit.id}>
                         <Link
                             to={`/visits/${visit.id}`}
