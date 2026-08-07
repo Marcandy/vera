@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router';
 import StatusPill from '../components/StatusPill';
 import { getVisitById } from '../services/visitService';
-import { formatDateTime, formatTime } from '../utils/format';
+import { formatDateTime, formatTime, formatLocation } from '../utils/format';
 import styles from './VisitDetail.module.css';
 
 // Evidence fields checked for the needs-review panel, in pipeline order.
@@ -75,6 +75,9 @@ const VisitDetail = () => {
 
                     <dt>Check-out</dt>
                     <dd>{formatTime(visit.checkOutTime)}</dd>
+
+                    <dt>Check-in location</dt>
+                    <dd>{formatLocation(visit.checkInLocation)}</dd>
                 </dl>
             </div>
 
