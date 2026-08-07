@@ -22,7 +22,12 @@ export const getVisitById = async (id) => {
     return visits.find((visit) => visit.id === Number(id));
 }
 
-export const checkInVisit = async (id) => {
+// The caller supplies the location because the device is the only authority
+// on where it is; the service still stamps the clock itself, because a time a
+// caller could author is not evidence. Location is metadata either way: it is
+// never part of the four-field evidence check, so a caregiver whose phone
+// refused permission still produces a billable visit.
+export const checkInVisit = async (id, location) => {
     await delay(300);
 
     const idx = findIdx(id)
@@ -33,7 +38,8 @@ export const checkInVisit = async (id) => {
 
     visits[idx] = {...visits[idx],
         status: "in progress",
-        checkInTime: new Date().toISOString()
+        checkInTime: new Date().toISOString(),
+        checkInLocation: location ?? null
     }
 
     return visits[idx];
