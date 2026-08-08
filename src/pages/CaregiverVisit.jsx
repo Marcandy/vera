@@ -4,7 +4,8 @@ import StatusPill from "../components/StatusPill";
 import { checkInVisit, checkOutVisit, getVisitById, supplyEvidence } from "../services/visitService";
 import styles from "./CaregiverVisit.module.css";
 import SignatureField from "../components/SignatureField";
-import { formatDateTime, formatTime } from "../utils/format";
+import { formatDateTime, formatTime, formatLocation } from "../utils/format";
+import { getCurrentLocation } from "../services/locationService";
 
 // Evidence fields for the needs-review supply panel, in pipeline order.
 // Duplicated from VisitDetail for now; extraction is a parked card.
@@ -47,7 +48,11 @@ const CaregiverVisit = () => {
         setError(null);
         setCheckingIn(true);
         try {
-            const newVisit = await checkInVisit(visit.id);
+            // Ask the device first, then hand the answer to the service. This
+            // never throws and never blocks: a refused or unreachable fix still
+            // checks the caregiver in, it just records that it was not captured.
+            const location = await getCurrentLocation();
+            const newVisit = await checkInVisit(visit.id, location);
             setVisit(newVisit)
         } catch (err) {
             setError(err.message);
@@ -127,7 +132,7 @@ const CaregiverVisit = () => {
                     <button onClick={handleCheckIn} className={styles.checkInButton} disabled={checkingIn}>
                         {checkingIn ? "Checking in..." : "Check In"}
                     </button>
-                    <p className={styles.mockNote}>Location is mocked in this MVP. Check-in records the time.</p>
+                    <p className={styles.helpNote}>Your device location is recorded if you allow it. Check-in works either way.</p>
                 </>
             )}
             {error && <p className={styles.errorNote}>{error}</p> }
@@ -135,7 +140,7 @@ const CaregiverVisit = () => {
             {visit.status === "in progress" && (
                 <div className={styles.checkedInCard}>
                     <p className={styles.checkedInTime}>Checked in at {formatTime(visit.checkInTime)}</p>
-                    <p className={styles.mockLocation}>Location: verified (mock)</p>
+                    <p className={styles.locationNote}>Location: {formatLocation(visit.checkInLocation)}</p>
 
                     <form className={styles.checkOutForm} onSubmit={handleCheckOut}>
                         <label className={styles.fieldLabel} htmlFor="assessment">Visit assessment</label>

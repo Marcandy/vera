@@ -23,7 +23,7 @@ The visit verification core is modeled on Electronic Visit Verification (EVV), w
 
 **For the caregiver (phone-width surface, one primary action per screen):**
 
-- Check in on arrival; the system stamps the time (location is mocked in this MVP)
+- Check in on arrival; the system stamps the time and records the device's location when the caregiver allows it. A refused or unreachable location is recorded as unavailable, with the reason, and never blocks the check-in
 - Check out with a visit assessment and the patient's typed signature
 - Checking out without a signature warns first, then flags the visit for review instead of blocking the caregiver from leaving
 - Missing evidence can be supplied later, which is the only way a flagged visit becomes billable
@@ -53,6 +53,7 @@ Every transition has a cause: check-in, check-out with an evidence check, eviden
 - All data access goes through a service layer (`src/services`). Components never import mock data directly. The services expose async functions with realistic latency, so a real backend can replace the mock internals without changing a single component.
 - Mutations are domain verbs (`checkInVisit`, `checkOutVisit`, `supplyEvidence`, `submitClaim`, `addCaregiver`, `signDocument`), and state transition rules live inside them, not in components.
 - Derived state over stored flags: the missing-evidence panel and the cleared-to-work badge are computed from the data at render time, so they can never disagree with the record.
+- `locationService` sits alongside the data services but is a device adapter, not a repository: no backend will ever replace it, because the device is the only authority on where it is. It resolves a result object rather than rejecting, since a refused permission is an ordinary outcome of a real check-in and not an exception.
 
 ## Running locally
 
@@ -70,6 +71,8 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 | Scenario | Steps | Expected |
 |---|---|---|
 | Check-in | Open a scheduled visit's caregiver flow, tap Check In | Status moves to in progress everywhere; time recorded |
+| Check-in, location allowed | Allow the browser's location prompt | Coordinates and accuracy recorded; caregiver flow and visit detail both show them |
+| Check-in, location refused | Block or dismiss the location prompt | Check-in still succeeds; both surfaces read Unavailable with the reason, never a placeholder position |
 | Check-out, full evidence | Fill assessment and signature, check out | Visit becomes ready to bill; Billing total increases |
 | Check-out, no signature | Leave signature blank, check out | Warning appears; Check Out Anyway flags the visit needs review |
 | Supply evidence | Open a flagged visit's caregiver flow, add the missing signature | Visit becomes ready to bill; Billing updates |
@@ -87,7 +90,7 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 
 - A distinct status between verified and billable once payer and authorization rules arrive with a real backend
 - Persistence: localStorage first, then a real API behind the same service contracts
-- Real browser geolocation at check-in, with a mock fallback for bad signal
+- Location at check-out as well as check-in, and a review surface that surfaces visits whose location was never captured
 - Drawn signature capture
 - Document expiration dates, with the expiring status derived from them and a renewal flow
 - A caregiver home screen ("my visits today") and role-based views
