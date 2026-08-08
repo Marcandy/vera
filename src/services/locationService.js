@@ -6,11 +6,17 @@
 // getCurrentLocation() NEVER rejects. A denied permission is an ordinary
 // outcome of a real check-in, not an exception, so every failure comes back
 // as a result object the caller can render honestly:
-//   { available: true,  latitude, longitude, accuracy, source: "gps" }
+//   { available: true,  latitude, longitude, accuracy }
 //   { available: false, reason: "denied" | "unavailable" | "timeout" | "unsupported" }
 //
 // What it will never do is invent coordinates. A mocked position presented as
 // proof of presence is fabricated evidence, the same sin as a typed timestamp.
+//
+// There is deliberately no "source" field. The spec does not say whether a fix
+// came from a GPS radio, wifi trilateration, or an IP lookup, so any value we
+// wrote there would be a guess wearing the clothes of a record. accuracy is the
+// honest signal: a reading good to 8 m and one good to 130 m are different
+// evidence, and the number says so without us naming a method we cannot see.
 
 const TIMEOUT_MS = 10000;
 
@@ -53,7 +59,6 @@ export const getCurrentLocation = () =>
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
                     accuracy: position.coords.accuracy,
-                    source: "gps",
                 });
             },
             (error) => {
