@@ -9,6 +9,7 @@ import NotFound from './pages/NotFound';
 import CaregiverVisit from './pages/CaregiverVisit';
 import Homepage from './pages/Homepage';
 import About from './pages/About';
+import MyVisits from './pages/MyVisits';
 
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
             <Route path="/" element={<Homepage />} />
             <Route element={<Layout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/my-visits" element={<MyVisits />} />
                 <Route path="/visits/:visitId" element={<VisitDetail />} />
                 <Route path="/billing" element={<Billing />} />
                 <Route path="/caregivers" element={<Caregivers />} />
