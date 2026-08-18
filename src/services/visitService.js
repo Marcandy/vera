@@ -1,4 +1,5 @@
 import { visits } from "../data/visits";
+import { VISIT_STATUS } from "../utils/status";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -42,12 +43,12 @@ export const checkInVisit = async (id, location) => {
 
     const idx = findIdx(id)
 
-    if (visits[idx].status !== 'scheduled') {
+    if (visits[idx].status !== VISIT_STATUS.SCHEDULED) {
        throw new Error(`Cannot check in a visit that is ${visits[idx].status}`)
     }
 
     visits[idx] = {...visits[idx],
-        status: "in progress",
+        status: VISIT_STATUS.IN_PROGRESS,
         checkInTime: new Date().toISOString(),
         checkInLocation: location ?? null
     }
@@ -61,7 +62,7 @@ export const checkOutVisit = async (id, { assessment, signature }) => {
 
     const idx = findIdx(id)
 
-    if (visits[idx].status !== "in progress" ) {
+    if (visits[idx].status !== VISIT_STATUS.IN_PROGRESS ) {
         throw new Error (`Cannot check out a visit that is ${visits[idx].status}`);
     }
      
@@ -87,7 +88,7 @@ export const checkOutVisit = async (id, { assessment, signature }) => {
         updated.checkInTime && updated.checkOutTime &&
         updated.assessment && updated.signature;
 
-    updated.status = evidenceComplete ? "ready to bill" : "needs review";
+    updated.status = evidenceComplete ? VISIT_STATUS.READY_TO_BILL : VISIT_STATUS.NEEDS_REVIEW;
 
     visits[idx] = updated;
     // return the update object
@@ -100,7 +101,7 @@ export const supplyEvidence = async(id, {assessment, signature}) => {
 
     const idx = findIdx(id);
 
-    if(visits[idx].status !== "needs review") {
+    if(visits[idx].status !== VISIT_STATUS.NEEDS_REVIEW) {
         throw new Error(`Cannot supply evidence to a visit that is ${visits[idx].status}`);
     }
 
@@ -120,7 +121,7 @@ export const supplyEvidence = async(id, {assessment, signature}) => {
         updated.checkInTime && updated.checkOutTime &&
         updated.assessment && updated.signature;
 
-    updated.status = evidenceComplete ? "ready to bill" : "needs review";
+    updated.status = evidenceComplete ? VISIT_STATUS.READY_TO_BILL : VISIT_STATUS.NEEDS_REVIEW;
 
     visits[idx] = updated;
     return updated
@@ -131,13 +132,13 @@ export const submitClaim = async (id) => {
 
     const idx = findIdx(id);
 
-    if(visits[idx].status !== 'ready to bill') {
+    if(visits[idx].status !== VISIT_STATUS.READY_TO_BILL) {
         throw new Error(`Cannot submit a claim for a visit that is ${visits[idx].status}`)
     }
 
     const updated = {
         ...visits[idx],
-        status: 'billed',
+        status: VISIT_STATUS.BILLED,
         submittedAt: new Date().toISOString(),
         claimId: `clm_mock_${id}`
     }

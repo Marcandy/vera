@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { getVisits, submitClaim } from "../services/visitService";
 import { formatDateTime, formatCurrency, hoursBetween } from "../utils/format";
 import styles from "./Billing.module.css";
+import { VISIT_STATUS } from "../utils/status";
 
 const sumCost = (list) => list.reduce((sum, visit) => sum + visit.estimatedCost, 0);
 
@@ -20,8 +21,8 @@ const Billing = () => {
     useEffect(() => {
         async function fetchVisits () {
             const results = await getVisits();
-            setReadyToBill(results.filter((visit) => visit.status === "ready to bill"));
-            setBilled(results.filter((visit) => visit.status === "billed"));
+            setReadyToBill(results.filter((visit) => visit.status === VISIT_STATUS.READY_TO_BILL));
+            setBilled(results.filter((visit) => visit.status === VISIT_STATUS.BILLED));
             setLoading(false);
         }
 

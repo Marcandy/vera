@@ -2,17 +2,18 @@ import { Link } from "react-router";
 import VisitCard from "../components/VisitCard";
 import styles from "./Dashboard.module.css";
 import { getVisits } from "../services/visitService";
+import { VISIT_STATUS } from "../utils/status";
 import { useEffect, useState } from "react";
 
 // Denise's attention order, lowest rank first. This is a property of THIS
 // screen, not of the collection, so it lives here and not in the service:
 // the first two need her to act, the rest are just status.
 const STATUS_RANK = {
-    "needs review": 0,
-    "ready to bill": 1,
-    "in progress": 2,
-    "scheduled": 3,
-    "billed": 4,
+    [VISIT_STATUS.NEEDS_REVIEW]: 0,
+    [VISIT_STATUS.READY_TO_BILL]: 1,
+    [VISIT_STATUS.IN_PROGRESS]: 2,
+    [VISIT_STATUS.SCHEDULED]: 3,
+    [VISIT_STATUS.BILLED]: 4,
 };
 
 // An unrecognized status means a broken pipeline, not a real position.
