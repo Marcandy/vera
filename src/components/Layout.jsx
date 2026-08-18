@@ -74,6 +74,7 @@ const Layout = () => {
                         )}
                         {user && isAdmin && (
                             <>
+                                <NavLink to="/dashboard" className={navLinkClass}>Dashboard</NavLink>
                                 <NavLink to="/visits" className={navLinkClass}>Visitlist</NavLink>
                                 <NavLink to="/caregivers" className={navLinkClass}>Caregivers</NavLink>
                                 <NavLink to="/billing" className={navLinkClass}>Billing</NavLink>

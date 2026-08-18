@@ -1,6 +1,7 @@
 import './App.css'
-import { Routes, Route, Navigate } from 'react-router';
+import { Routes, Route } from 'react-router';
 import Visits from './pages/Visits';
+import Dashboard from './pages/Dashboard';
 import VisitDetail from './pages/VisitDetail';
 import Layout from './components/Layout';
 import Billing from './pages/Billing';
@@ -18,8 +19,7 @@ function App() {
       <Routes>
             <Route path="/" element={<Homepage />} />
             <Route element={<Layout />}>
-                {/* the overview replaces this redirect in the next commit */}
-                <Route path="/dashboard" element={<Navigate to="/visits" replace />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/visits" element={<Visits />} />
                 <Route path="/my-visits" element={<MyVisits />} />
                 <Route path="/visits/:visitId" element={<VisitDetail />} />
