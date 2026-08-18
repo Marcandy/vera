@@ -16,6 +16,16 @@ export const getVisits = async () => {
 }
 
 
+// Filtering by id, never by name: names collide and change, ids do not.
+// This is GET /api/visits?caregiverId=1, and in Spring it is a repository
+// query rather than a loop, which is why the filter belongs in the service
+// and not in the page that renders the list.
+export const getVisitsByCaregiver = async (caregiverId) => {
+    await delay(300);
+
+    return visits.filter((visit) => visit.caregiverId === Number(caregiverId));
+}
+
 export const getVisitById = async (id) => {
     await delay(300);
 

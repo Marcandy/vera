@@ -5,6 +5,11 @@
 // DERIVED from these nulls, never stored as a separate list.
 // patientConcern is NOT evidence: null = patient raised nothing
 // (normal), so it never blocks billing or shows as "missing".
+// caregiverId is the FOREIGN KEY; caregiverName is denormalized beside it
+// for display. Both belong here on purpose: the id is identity and is what
+// filtering and, later, a JPA relation join on, while the name spares every
+// list a second lookup. That is what an API returns, a DTO rather than a
+// raw entity row.
 // checkInLocation is METADATA, never evidence: it can never block billing.
 // null = never captured, which is what every seed visit is. A real capture
 // stores the whole locationService result, including the reason when the
@@ -16,6 +21,7 @@ export const visits = [
     {
         id: 1,
         patientName: "Eleanor Whitfield",
+        caregiverId: 1,
         caregiverName: "Marcus Reed",
         appointmentTime: "2026-07-07T14:00",
         status: "needs review",
@@ -30,6 +36,7 @@ export const visits = [
     {
         id: 2,
         patientName: "Samuel Okafor",
+        caregiverId: 2,
         caregiverName: "Dana Alvarez",
         appointmentTime: "2026-07-07T16:30",
         status: "needs review",
@@ -44,6 +51,7 @@ export const visits = [
     {
         id: 3,
         patientName: "Rosa Delgado",
+        caregiverId: 1,
         caregiverName: "Marcus Reed",
         appointmentTime: "2026-07-07T09:00",
         status: "ready to bill",
@@ -58,6 +66,7 @@ export const visits = [
     {
         id: 4,
         patientName: "Harold Brennan",
+        caregiverId: 3,
         caregiverName: "Keisha Thompson",
         appointmentTime: "2026-07-07T11:30",
         status: "ready to bill",
@@ -72,6 +81,7 @@ export const visits = [
     {
         id: 8,
         patientName: "Dorothy Chen",
+        caregiverId: 3,
         caregiverName: "Keisha Thompson",
         appointmentTime: "2026-07-07T10:00",
         status: "ready to bill",
@@ -86,6 +96,7 @@ export const visits = [
     {
         id: 5,
         patientName: "Miriam Katz",
+        caregiverId: 2,
         caregiverName: "Dana Alvarez",
         appointmentTime: "2026-07-08T08:00",
         status: "in progress",
@@ -100,6 +111,7 @@ export const visits = [
     {
         id: 9,
         patientName: "Walter Osei",
+        caregiverId: 2,
         caregiverName: "Dana Alvarez",
         appointmentTime: "2026-07-08T11:00",
         status: "in progress",
@@ -114,6 +126,7 @@ export const visits = [
     {
         id: 6,
         patientName: "George Antonelli",
+        caregiverId: 3,
         caregiverName: "Keisha Thompson",
         appointmentTime: "2026-07-08T13:00",
         status: "scheduled",
@@ -128,6 +141,7 @@ export const visits = [
     {
         id: 10,
         patientName: "Agnes Romano",
+        caregiverId: 1,
         caregiverName: "Marcus Reed",
         appointmentTime: "2026-07-09T09:30",
         status: "scheduled",
@@ -142,6 +156,7 @@ export const visits = [
     {
         id: 7,
         patientName: "Pearl Jackson",
+        caregiverId: 1,
         caregiverName: "Marcus Reed",
         appointmentTime: "2026-07-07T08:00",
         status: "billed",

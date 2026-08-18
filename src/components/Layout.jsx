@@ -1,13 +1,24 @@
 import { useState } from "react";
-import { NavLink, Outlet } from "react-router";
+import { NavLink, Outlet, useNavigate } from "react-router";
 import styles from "./Layout.module.css";
 import Footer from "./Footer";
+import { useSession } from "../context/sessionContext";
+import { hasRole, ROLES } from "../utils/roles";
 
 const navLinkClass = ({ isActive }) =>
     isActive ? `${styles.navLink} ${styles.active}` : styles.navLink;
 
 const Layout = () => {
     const [menuOpen, setMenuOpen] = useState(false);
+    const { user, loading, logout } = useSession();
+    const navigate = useNavigate();
+
+    const isAdmin = hasRole(user, ROLES.ADMIN);
+
+    async function handleSignOut() {
+        await logout();
+        navigate("/");
+    }
 
     return (
         <div className={styles.shell}>
@@ -28,6 +39,19 @@ const Layout = () => {
                     </svg>
                     Vera
                 </h1>
+                {!loading && user && (
+                    <div className={styles.session}>
+                        <span className={styles.sessionUser}>{user.name}</span>
+                        <button
+                            type="button"
+                            className={styles.signOutButton}
+                            onClick={handleSignOut}
+                        >
+                            Sign out
+                        </button>
+                    </div>
+                )}
+
                 <button
                     type="button"
                     className={styles.menuButton}
@@ -41,11 +65,25 @@ const Layout = () => {
 
             <aside className={menuOpen ? `${styles.sidebar} ${styles.open}` : styles.sidebar}>
                 {/* clicking any link also closes the phone menu; no effect on desktop */}
-                <nav onClick={() => setMenuOpen(false)}>
-                    <NavLink to="/dashboard" className={navLinkClass}>Visitlist</NavLink>
-                    <NavLink to="/caregivers" className={navLinkClass}>Caregivers</NavLink>
-                    <NavLink to="/billing" className={navLinkClass}>Billing</NavLink>
-                </nav>
+                {/* Rendered only once the session is known. Guessing during the
+                    unknown state would flash the admin nav at a caregiver. */}
+                {!loading && (
+                    <nav onClick={() => setMenuOpen(false)}>
+                        {!user && (
+                            <NavLink to="/" className={navLinkClass}>Sign in</NavLink>
+                        )}
+                        {user && isAdmin && (
+                            <>
+                                <NavLink to="/dashboard" className={navLinkClass}>Visitlist</NavLink>
+                                <NavLink to="/caregivers" className={navLinkClass}>Caregivers</NavLink>
+                                <NavLink to="/billing" className={navLinkClass}>Billing</NavLink>
+                            </>
+                        )}
+                        {user && !isAdmin && (
+                            <NavLink to="/my-visits" className={navLinkClass}>My visits</NavLink>
+                        )}
+                    </nav>
+                )}
             </aside>
 
             <main className={styles.content}>

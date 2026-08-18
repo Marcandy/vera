@@ -23,6 +23,7 @@ The visit verification core is modeled on Electronic Visit Verification (EVV), w
 
 **For the caregiver (phone-width surface, one primary action per screen):**
 
+- My visits: the day's assigned visits, in the order they happen. The caregiver id comes from the session and never from the URL, so there is no address to type that reveals a colleague's patients
 - Check in on arrival; the system stamps the time and records the device's location when the caregiver allows it. A refused or unreachable location is recorded as unavailable, with the reason, and never blocks the check-in
 - Check out with a visit assessment and the patient's typed signature
 - Checking out without a signature warns first, then flags the visit for review instead of blocking the caregiver from leaving
@@ -30,7 +31,8 @@ The visit verification core is modeled on Electronic Visit Verification (EVV), w
 
 **Around the app:**
 
-- Home: product intro and a simulated sign-in (no account needed)
+- Home: product intro and a simulated sign-in. Two demo accounts, `denise@agency.com` (administrator) and `marcus@agency.com` (caregiver), with any password. The password is required but never checked, and the app says so
+- Roles: the administrator sees the visit list, caregivers, and billing; a caregiver sees only their own schedule. The session survives a refresh and there is no route guarding, because there is no real authentication to guard with
 - About: the home care industry in numbers, from cited primary sources
 - Responsive layout: tablet breakpoint, and a phone breakpoint where the sidebar collapses behind a menu button
 
@@ -54,6 +56,8 @@ Every transition has a cause: check-in, check-out with an evidence check, eviden
 - Mutations are domain verbs (`checkInVisit`, `checkOutVisit`, `supplyEvidence`, `submitClaim`, `addCaregiver`, `signDocument`), and state transition rules live inside them, not in components.
 - Derived state over stored flags: the missing-evidence panel and the cleared-to-work badge are computed from the data at render time, so they can never disagree with the record.
 - `locationService` sits alongside the data services but is a device adapter, not a repository: no backend will ever replace it, because the device is the only authority on where it is. It resolves a result object rather than rejecting, since a refused permission is an ordinary outcome of a real check-in and not an exception.
+- The signed-in user is the only thing in React Context. Server data stays out of it: visits in Context would be a cache with no invalidation or staleness policy. The session stores a user id and rehydrates through the service on boot, the same shape a real client uses when it trades a token for `GET /api/auth/me`, which is why the session has three states rather than two: unknown, none, and a user.
+- Visits reference caregivers by id, with the name denormalized alongside for display. Names collide and change; ids do not.
 
 ## Running locally
 
@@ -80,7 +84,11 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 | Add caregiver | Submit the form with name and phone | Caregiver appears in the roster with pending documents; form clears |
 | Add caregiver, blank name | Submit with no name | Inline error from the service; nothing added |
 | Unknown routes | Visit a bad URL or a bad visit id | 404 page inside the app shell; not-found message with a way back |
-| Demo sign-in | From the home page, submit the sign-in form | Lands on the dashboard |
+| Demo sign-in, admin | Sign in as `denise@agency.com` | Lands on the dashboard; nav shows visit list, caregivers, billing |
+| Demo sign-in, caregiver | Sign in as `marcus@agency.com` | Lands on My visits with four visits; nav shows only My visits |
+| Unknown account | Sign in with any other email | Inline error from the service; stays on the home page |
+| Session persistence | Sign in, then reload the page | Still signed in, same role, with no flash of the signed-out view |
+| Sign out | Use the banner control | Returns to the home page; reloading does not restore the session |
 | Submit claim | On Billing, submit a ready-to-bill claim | Confirmation with a claim reference; row moves to Submitted claims; both totals update |
 | Sign document | On Caregivers, sign a pending document | Signature renders in cursive; pill flips to signed; badge flips to cleared when it was the last one |
 | Expiring document | Check an expiring document's row | No Sign button; expiring is not signable by design |
@@ -93,7 +101,7 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 - Location at check-out as well as check-in, and a review surface that surfaces visits whose location was never captured
 - Drawn signature capture
 - Document expiration dates, with the expiring status derived from them and a renewal flow
-- A caregiver home screen ("my visits today") and role-based views
+- Real authentication: hashed passwords, a token, and server-side authorization, replacing the demo sign-in
 - Patient records: standing concerns, and prescriptions under a future skilled-care path
 - Real claim submission and remittance (837 and 835) to a payer or clearinghouse, replacing the mock
 - Stripe test-mode collection for private-pay clients
