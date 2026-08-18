@@ -100,7 +100,7 @@ const CaregiverVisit = () => {
 
     if (loading) return (<p>Loading...</p>);
 
-    if (!visit) return (<p>Visit not found. <Link to="/dashboard">Back to visits</Link></p>);
+    if (!visit) return (<p>Visit not found. <Link to="/visits">Back to visits</Link></p>);
 
     const missingSignature = !signature.trim();
     const showNoSignatureWarning = confirmNoSignature && missingSignature;

@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import VisitCard from "../components/VisitCard";
-import styles from "./Dashboard.module.css";
+import styles from "./Visits.module.css";
 import { getVisits } from "../services/visitService";
 import { VISIT_STATUS } from "../utils/status";
 import { useEffect, useState } from "react";
@@ -32,7 +32,7 @@ const byAttention = (a, b) => {
     return a.appointmentTime.localeCompare(b.appointmentTime);
 };
 
-const Dashboard = () => {
+const Visits = () => {
     const [ visitList, setVisitList ] = useState(null);
 
     useEffect(()=> {
@@ -47,7 +47,7 @@ const Dashboard = () => {
     if(visitList === null) return <p>Loading...</p>
     if(visitList.length === 0) {
         return (
-            <section className={styles.dashboard}>
+            <section className={styles.visits}>
                 <h3>Visits</h3>
                 <p className={styles.emptyState}>
                     No visits yet. Scheduled visits will appear here.
@@ -61,7 +61,7 @@ const Dashboard = () => {
     const orderedVisits = [...visitList].sort(byAttention);
 
     return (
-        <section className={styles.dashboard}>
+        <section className={styles.visits}>
             <h3>Visits</h3>
 
             <ul className={styles.visitList}>
@@ -80,4 +80,4 @@ const Dashboard = () => {
     )
 }
 
-export default Dashboard;
+export default Visits;
