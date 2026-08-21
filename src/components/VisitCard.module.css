@@ -42,3 +42,9 @@
         padding-right: 96px;
     }
 }
+.badgeRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
