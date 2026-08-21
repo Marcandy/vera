@@ -16,7 +16,8 @@ The visit verification core is modeled on Electronic Visit Verification (EVV), w
 
 **For the administrator:**
 
-- Dashboard: every visit with its pipeline status, needs-review visits first
+- Dashboard: what needs attention right now, as counts of flagged and billable visits plus the dollar value waiting on a claim; every tile drills into the filtered list
+- Visit list: every visit with its pipeline status, filtered by status and sorted by attention or by date. Filters live in the URL, so a filtered view is shareable and survives the back button
 - Visit detail: check-in and check-out times, assessment, and signature; a flagged visit derives and lists exactly what evidence is missing
 - Billing: ready-to-bill visits with hours worked and estimated cost, one-click mock claim submission, and a submitted-claims register with claim references
 - Caregivers: team roster, add-caregiver form, and a per-caregiver onboarding document checklist (signed, pending, expiring) with a derived cleared-to-work badge; pending documents accept a cursive signature capture
@@ -54,7 +55,7 @@ Every transition has a cause: check-in, check-out with an evidence check, eviden
 - Vite + React (JavaScript), React Router, CSS Modules. No UI libraries.
 - All data access goes through a service layer (`src/services`). Components never import mock data directly. The services expose async functions with realistic latency, so a real backend can replace the mock internals without changing a single component.
 - Mutations are domain verbs (`checkInVisit`, `checkOutVisit`, `supplyEvidence`, `submitClaim`, `addCaregiver`, `signDocument`), and state transition rules live inside them, not in components.
-- Derived state over stored flags: the missing-evidence panel and the cleared-to-work badge are computed from the data at render time, so they can never disagree with the record.
+- Derived state over stored flags: the dashboard counts, the missing-evidence panel, and the cleared-to-work badge are computed from the data at render time, so they can never disagree with the record.
 - `locationService` sits alongside the data services but is a device adapter, not a repository: no backend will ever replace it, because the device is the only authority on where it is. It resolves a result object rather than rejecting, since a refused permission is an ordinary outcome of a real check-in and not an exception.
 - The signed-in user is the only thing in React Context. Server data stays out of it: visits in Context would be a cache with no invalidation or staleness policy. The session stores a user id and rehydrates through the service on boot, the same shape a real client uses when it trades a token for `GET /api/auth/me`, which is why the session has three states rather than two: unknown, none, and a user.
 - Visits reference caregivers by id, with the name denormalized alongside for display. Names collide and change; ids do not.
@@ -84,6 +85,10 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 | Add caregiver | Submit the form with name and phone | Caregiver appears in the roster with pending documents; form clears |
 | Add caregiver, blank name | Submit with no name | Inline error from the service; nothing added |
 | Unknown routes | Visit a bad URL or a bad visit id | 404 page inside the app shell; not-found message with a way back |
+| Dashboard tiles | Click Need review on the dashboard | Lands on the visit list filtered to needs review, chip shown active |
+| Filter deep link | Open /visits?status=billed directly, then reload | One visit shown both times; the filter is in the URL, not in component state |
+| Bad filter in the URL | Open /visits?status=bogus | Falls back to the unfiltered list rather than a blank screen |
+| Empty filter result | Filter to a status with no visits | Message naming that status, with a control to show all visits |
 | Demo sign-in, admin | Sign in as `denise@agency.com` | Lands on the dashboard; nav shows visit list, caregivers, billing |
 | Demo sign-in, caregiver | Sign in as `marcus@agency.com` | Lands on My visits with four visits; nav shows only My visits |
 | Unknown account | Sign in with any other email | Inline error from the service; stays on the home page |

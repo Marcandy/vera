@@ -1,5 +1,6 @@
 import './App.css'
 import { Routes, Route } from 'react-router';
+import Visits from './pages/Visits';
 import Dashboard from './pages/Dashboard';
 import VisitDetail from './pages/VisitDetail';
 import Layout from './components/Layout';
@@ -19,6 +20,7 @@ function App() {
             <Route path="/" element={<Homepage />} />
             <Route element={<Layout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/visits" element={<Visits />} />
                 <Route path="/my-visits" element={<MyVisits />} />
                 <Route path="/visits/:visitId" element={<VisitDetail />} />
                 <Route path="/billing" element={<Billing />} />

@@ -63,7 +63,7 @@ const MyVisits = () => {
                 <p className={styles.emptyState}>
                     This view belongs to a caregiver, and your account is not
                     linked to a caregiver record. The{" "}
-                    <Link to="/dashboard">dashboard</Link> has every visit in
+                    <Link to="/visits">visit list</Link> has every visit in
                     the agency.
                 </p>
             </section>

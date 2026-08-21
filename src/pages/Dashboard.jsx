@@ -1,82 +1,111 @@
-import { Link } from "react-router";
-import VisitCard from "../components/VisitCard";
-import styles from "./Dashboard.module.css";
-import { getVisits } from "../services/visitService";
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
+import { getVisits } from "../services/visitService";
+import { VISIT_STATUS } from "../utils/status";
+import { countByStatus, sumCost } from "../utils/visits";
+import { formatCurrency } from "../utils/format";
+import styles from "./Dashboard.module.css";
 
-// Denise's attention order, lowest rank first. This is a property of THIS
-// screen, not of the collection, so it lives here and not in the service:
-// the first two need her to act, the rest are just status.
-const STATUS_RANK = {
-    "needs review": 0,
-    "ready to bill": 1,
-    "in progress": 2,
-    "scheduled": 3,
-    "billed": 4,
-};
+// Denise's stated need is knowing what wants her within five seconds of
+// landing. A list of ten visits does not answer that; it makes her read.
+// These two tiles are the only ones she can act on, which is why they sit
+// apart from the rest and why the pipeline counts below them are quieter.
+const ACTIONABLE = [
+    {
+        status: VISIT_STATUS.NEEDS_REVIEW,
+        title: "Need review",
+        blurb: "Missing evidence is holding these out of billing",
+    },
+    {
+        status: VISIT_STATUS.READY_TO_BILL,
+        title: "Ready to bill",
+        blurb: "Verified and waiting on a claim",
+    },
+];
 
-// An unrecognized status means a broken pipeline, not a real position.
-// It parks at the end; StatusPill is what fails visibly, by rendering bare.
-const RANK_UNKNOWN = Number.MAX_SAFE_INTEGER;
-
-// Tiebreak oldest appointment first: the longest-waiting visit is the most
-// urgent one in its group. ISO strings compare lexicographically, which is
-// the reason the visit shape stores them as strings.
-const byAttention = (a, b) => {
-    const rankDiff =
-        (STATUS_RANK[a.status] ?? RANK_UNKNOWN) - (STATUS_RANK[b.status] ?? RANK_UNKNOWN);
-
-    if (rankDiff !== 0) return rankDiff;
-
-    return a.appointmentTime.localeCompare(b.appointmentTime);
-};
+const PIPELINE = [
+    { status: VISIT_STATUS.IN_PROGRESS, title: "In progress" },
+    { status: VISIT_STATUS.SCHEDULED, title: "Scheduled" },
+    { status: VISIT_STATUS.BILLED, title: "Billed" },
+];
 
 const Dashboard = () => {
-    const [ visitList, setVisitList ] = useState(null);
+    const [visitList, setVisitList] = useState(null);
 
-    useEffect(()=> {
+    useEffect(() => {
+        let stale = false;
         async function fetchData() {
-            const visitListData = await getVisits();
-            setVisitList(visitListData);
-
+            const visits = await getVisits();
+            if (!stale) setVisitList(visits);
         }
         fetchData();
-    },[])
+        return () => { stale = true; };
+    }, []);
 
-    if(visitList === null) return <p>Loading...</p>
-    if(visitList.length === 0) {
+    if (visitList === null) return <p>Loading...</p>
+
+    // Derived at render from the records themselves, so a count can never
+    // disagree with the list it summarizes.
+    const counts = countByStatus(visitList);
+    const readyToBillTotal = sumCost(
+        visitList.filter((visit) => visit.status === VISIT_STATUS.READY_TO_BILL)
+    );
+
+    if (visitList.length === 0) {
         return (
             <section className={styles.dashboard}>
-                <h3>Visits</h3>
+                <h3>Dashboard</h3>
                 <p className={styles.emptyState}>
-                    No visits yet. Scheduled visits will appear here.
+                    No visits yet. Once visits are scheduled, this is where
+                    what needs your attention will show up.
                 </p>
             </section>
         );
     }
 
-    // Sort a COPY. getVisits() hands back the live seed array, so sorting in
-    // place would reorder the data source every component reads from.
-    const orderedVisits = [...visitList].sort(byAttention);
-
     return (
         <section className={styles.dashboard}>
-            <h3>Visits</h3>
+            <h3>Dashboard</h3>
 
-            <ul className={styles.visitList}>
-                {orderedVisits.map((visit) => (
-                    <li key={visit.id}>
-                        <Link
-                            to={`/visits/${visit.id}`}
-                            className={styles.cardLink}
-                        >
-                            <VisitCard visit={visit} />
-                        </Link>
-                    </li>
+            <div className={styles.actionRow}>
+                {ACTIONABLE.map(({ status, title, blurb }) => (
+                    <Link
+                        key={status}
+                        to={`/visits?status=${encodeURIComponent(status)}`}
+                        className={styles.actionTile}
+                    >
+                        <span className={styles.tileCount}>{counts[status] ?? 0}</span>
+                        <span className={styles.tileTitle}>{title}</span>
+                        <span className={styles.tileBlurb}>{blurb}</span>
+                    </Link>
                 ))}
-            </ul>
+
+                <Link to="/billing" className={styles.moneyTile}>
+                    <span className={styles.tileCount}>{formatCurrency(readyToBillTotal)}</span>
+                    <span className={styles.tileTitle}>Ready to claim</span>
+                    <span className={styles.tileBlurb}>Verified care not yet submitted</span>
+                </Link>
+            </div>
+
+            <h4 className={styles.sectionTitle}>Everything else</h4>
+            <div className={styles.pipelineRow}>
+                {PIPELINE.map(({ status, title }) => (
+                    <Link
+                        key={status}
+                        to={`/visits?status=${encodeURIComponent(status)}`}
+                        className={styles.pipelineTile}
+                    >
+                        <span className={styles.pipelineCount}>{counts[status] ?? 0}</span>
+                        <span className={styles.pipelineTitle}>{title}</span>
+                    </Link>
+                ))}
+            </div>
+
+            <p className={styles.allLink}>
+                <Link to="/visits">See all {visitList.length} visits</Link>
+            </p>
         </section>
-    )
+    );
 }
 
 export default Dashboard;

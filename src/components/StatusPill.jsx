@@ -1,14 +1,15 @@
 import styles from './StatusPill.module.css'
+import { VISIT_STATUS, DOCUMENT_STATUS } from '../utils/status'
 
 const STATUS_CLASSES = {
-    "scheduled": styles.scheduled,
-    "in progress": styles.inProgress,
-    "needs review": styles.needsReview,
-    "ready to bill": styles.readyToBill,
-    "billed": styles.billed,
-    "signed": styles.signed,
-    "pending": styles.pending,
-    "expiring": styles.expiring
+    [VISIT_STATUS.SCHEDULED]: styles.scheduled,
+    [VISIT_STATUS.IN_PROGRESS]: styles.inProgress,
+    [VISIT_STATUS.NEEDS_REVIEW]: styles.needsReview,
+    [VISIT_STATUS.READY_TO_BILL]: styles.readyToBill,
+    [VISIT_STATUS.BILLED]: styles.billed,
+    [DOCUMENT_STATUS.SIGNED]: styles.signed,
+    [DOCUMENT_STATUS.PENDING]: styles.pending,
+    [DOCUMENT_STATUS.EXPIRING]: styles.expiring,
 }
 
 const StatusPill = ({ status }) => {

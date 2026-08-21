@@ -35,13 +35,13 @@ const VisitDetail = () => {
 
     if (loading) return (<p>Loading...</p>);
 
-    if (!visit) return (<p>Visit not found. <Link to="/dashboard">Back to visits</Link></p>);
+    if (!visit) return (<p>Visit not found. <Link to="/visits">Back to visits</Link></p>);
 
     const missingEvidence = EVIDENCE_LABELS.filter(({ field }) => visit[field] === null);
 
     return (
         <section className={styles.visitDetail}>
-            <Link to="/dashboard" className={styles.backLink}>← Back to visits</Link>
+            <Link to="/visits" className={styles.backLink}>← Back to visits</Link>
 
             <div className={styles.headerRow}>
                 <h3>{visit.patientName}</h3>

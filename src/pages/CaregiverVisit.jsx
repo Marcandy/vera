@@ -5,6 +5,7 @@ import { checkInVisit, checkOutVisit, getVisitById, supplyEvidence } from "../se
 import styles from "./CaregiverVisit.module.css";
 import SignatureField from "../components/SignatureField";
 import { formatDateTime, formatTime, formatLocation } from "../utils/format";
+import { VISIT_STATUS } from "../utils/status";
 import { getCurrentLocation } from "../services/locationService";
 
 // Evidence fields for the needs-review supply panel, in pipeline order.
@@ -99,7 +100,7 @@ const CaregiverVisit = () => {
 
     if (loading) return (<p>Loading...</p>);
 
-    if (!visit) return (<p>Visit not found. <Link to="/dashboard">Back to visits</Link></p>);
+    if (!visit) return (<p>Visit not found. <Link to="/visits">Back to visits</Link></p>);
 
     const missingSignature = !signature.trim();
     const showNoSignatureWarning = confirmNoSignature && missingSignature;
@@ -127,7 +128,7 @@ const CaregiverVisit = () => {
                 <dd>{visit.caregiverName}</dd>
             </dl>
 
-            {visit.status === "scheduled" && (
+            {visit.status === VISIT_STATUS.SCHEDULED && (
                 <>
                     <button onClick={handleCheckIn} className={styles.checkInButton} disabled={checkingIn}>
                         {checkingIn ? "Checking in..." : "Check In"}
@@ -137,7 +138,7 @@ const CaregiverVisit = () => {
             )}
             {error && <p className={styles.errorNote}>{error}</p> }
 
-            {visit.status === "in progress" && (
+            {visit.status === VISIT_STATUS.IN_PROGRESS && (
                 <div className={styles.checkedInCard}>
                     <p className={styles.checkedInTime}>Checked in at {formatTime(visit.checkInTime)}</p>
                     <p className={styles.locationNote}>Location: {formatLocation(visit.checkInLocation)}</p>
@@ -176,7 +177,7 @@ const CaregiverVisit = () => {
                 </div>
             )}
 
-            {visit.status === "needs review" && (
+            {visit.status === VISIT_STATUS.NEEDS_REVIEW && (
                 <div className={styles.supplyCard}>
                     <h4 className={styles.supplyTitle}>Missing evidence</h4>
                     <ul className={styles.missingList}>
@@ -226,7 +227,7 @@ const CaregiverVisit = () => {
                 </div>
             )}
 
-            {!["scheduled", "in progress", "needs review"].includes(visit.status) && (
+            {![VISIT_STATUS.SCHEDULED, VISIT_STATUS.IN_PROGRESS, VISIT_STATUS.NEEDS_REVIEW].includes(visit.status) && (
                 <p className={styles.closedNote}>
                     This visit is {visit.status}. No caregiver actions available.
                 </p>
