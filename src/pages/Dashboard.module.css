@@ -124,3 +124,52 @@
     padding: 24px;
     line-height: 1.5;
 }
+
+.nudgePanel {
+    margin-top: 24px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--status-alert);
+    border-radius: 10px;
+    background-color: var(--card-bg);
+}
+
+.nudgeTitle {
+    margin: 0 0 12px;
+    font-size: 0.95rem;
+    color: var(--vera-primary-dark);
+}
+
+.nudgeList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nudgeRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.nudgeLink {
+    font-weight: 600;
+    color: var(--vera-primary-dark);
+}
+
+.nudgeMeta {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin-right: auto;
+}
+
+.nudgeNote {
+    margin: 12px 0 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
