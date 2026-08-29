@@ -2,6 +2,7 @@ import './App.css'
 import { Routes, Route } from 'react-router';
 import Visits from './pages/Visits';
 import Dashboard from './pages/Dashboard';
+import Patients from './pages/Patients';
 import VisitDetail from './pages/VisitDetail';
 import Layout from './components/Layout';
 import Billing from './pages/Billing';
@@ -25,6 +26,7 @@ function App() {
                 <Route path="/visits/:visitId" element={<VisitDetail />} />
                 <Route path="/billing" element={<Billing />} />
                 <Route path="/caregivers" element={<Caregivers />} />
+                <Route path="/patients" element={<Patients />} />
                 <Route path="/caregiver/visits/:visitId" element={<CaregiverVisit />} />
                 <Route path="/about" element={<About />} />
                 <Route path="*" element={<NotFound />} />
