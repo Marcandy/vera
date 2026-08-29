@@ -5,6 +5,8 @@
 // DERIVED from these nulls, never stored as a separate list.
 // patientConcern is NOT evidence: null = patient raised nothing
 // (normal), so it never blocks billing or shows as "missing".
+// patientId and caregiverId are FOREIGN KEYS; the matching names sit beside
+// them, denormalized for display.
 // caregiverId is the FOREIGN KEY; caregiverName is denormalized beside it
 // for display. Both belong here on purpose: the id is identity and is what
 // filtering and, later, a JPA relation join on, while the name spares every
@@ -22,6 +24,7 @@ import { VISIT_STATUS } from "../utils/status";
 export const visits = [
     {
         id: 1,
+        patientId: 1,
         patientName: "Eleanor Whitfield",
         caregiverId: 1,
         caregiverName: "Marcus Reed",
@@ -37,6 +40,7 @@ export const visits = [
     },
     {
         id: 2,
+        patientId: 2,
         patientName: "Samuel Okafor",
         caregiverId: 2,
         caregiverName: "Dana Alvarez",
@@ -52,6 +56,7 @@ export const visits = [
     },
     {
         id: 3,
+        patientId: 3,
         patientName: "Rosa Delgado",
         caregiverId: 1,
         caregiverName: "Marcus Reed",
@@ -67,6 +72,7 @@ export const visits = [
     },
     {
         id: 4,
+        patientId: 4,
         patientName: "Harold Brennan",
         caregiverId: 3,
         caregiverName: "Keisha Thompson",
@@ -82,6 +88,7 @@ export const visits = [
     },
     {
         id: 8,
+        patientId: 8,
         patientName: "Dorothy Chen",
         caregiverId: 3,
         caregiverName: "Keisha Thompson",
@@ -97,6 +104,7 @@ export const visits = [
     },
     {
         id: 5,
+        patientId: 5,
         patientName: "Miriam Katz",
         caregiverId: 2,
         caregiverName: "Dana Alvarez",
@@ -112,6 +120,7 @@ export const visits = [
     },
     {
         id: 9,
+        patientId: 9,
         patientName: "Walter Osei",
         caregiverId: 2,
         caregiverName: "Dana Alvarez",
@@ -127,6 +136,7 @@ export const visits = [
     },
     {
         id: 6,
+        patientId: 6,
         patientName: "George Antonelli",
         caregiverId: 3,
         caregiverName: "Keisha Thompson",
@@ -142,6 +152,7 @@ export const visits = [
     },
     {
         id: 10,
+        patientId: 10,
         patientName: "Agnes Romano",
         caregiverId: 1,
         caregiverName: "Marcus Reed",
@@ -157,6 +168,7 @@ export const visits = [
     },
     {
         id: 7,
+        patientId: 7,
         patientName: "Pearl Jackson",
         caregiverId: 1,
         caregiverName: "Marcus Reed",
@@ -171,5 +183,77 @@ export const visits = [
         signature: "P. Jackson (daughter)",
         claimId: "clm_mock_7",
         submittedAt: "2026-07-07T17:42"
+    },
+    {
+        id: 11,
+        patientId: 1,
+        patientName: "Eleanor Whitfield",
+        caregiverId: 1,
+        caregiverName: "Marcus Reed",
+        appointmentTime: "2026-06-23T14:00",
+        status: VISIT_STATUS.BILLED,
+        estimatedCost: 34,
+        checkInTime: "2026-06-23T13:58",
+        checkInLocation: null,
+        checkOutTime: "2026-06-23T15:04",
+        assessment: "Bathing and lunch as usual. Ankle swelling unchanged from last week.",
+        patientConcern: null,
+        signature: "Eleanor Whitfield",
+        claimId: "clm_mock_11",
+        submittedAt: "2026-06-23T18:10"
+    },
+    {
+        id: 12,
+        patientId: 1,
+        patientName: "Eleanor Whitfield",
+        caregiverId: 3,
+        caregiverName: "Keisha Thompson",
+        appointmentTime: "2026-06-30T14:00",
+        status: VISIT_STATUS.BILLED,
+        estimatedCost: 34,
+        checkInTime: "2026-06-30T14:05",
+        checkInLocation: null,
+        checkOutTime: "2026-06-30T15:07",
+        assessment: "Covered for Marcus. Patient needed extra time on the stairs; no falls.",
+        patientConcern: "Asked whether her regular caregiver would be back next week.",
+        signature: "Eleanor Whitfield",
+        claimId: "clm_mock_12",
+        submittedAt: "2026-06-30T17:55"
+    },
+    {
+        id: 13,
+        patientId: 3,
+        patientName: "Rosa Delgado",
+        caregiverId: 1,
+        caregiverName: "Marcus Reed",
+        appointmentTime: "2026-06-25T09:00",
+        status: VISIT_STATUS.BILLED,
+        estimatedCost: 52.5,
+        checkInTime: "2026-06-25T09:01",
+        checkInLocation: null,
+        checkOutTime: "2026-06-25T10:33",
+        assessment: "Walked to the corner and back. Good spirits, no shortness of breath.",
+        patientConcern: null,
+        signature: "Rosa Delgado",
+        claimId: "clm_mock_13",
+        submittedAt: "2026-06-25T16:20"
+    },
+    {
+        id: 14,
+        patientId: 4,
+        patientName: "Harold Brennan",
+        caregiverId: 3,
+        caregiverName: "Keisha Thompson",
+        appointmentTime: "2026-06-29T11:30",
+        status: VISIT_STATUS.BILLED,
+        estimatedCost: 56,
+        checkInTime: "2026-06-29T11:31",
+        checkInLocation: null,
+        checkOutTime: "2026-06-29T13:02",
+        assessment: "Full physical therapy set completed. Reports stiffness in the morning only.",
+        patientConcern: null,
+        signature: "Harold Brennan",
+        claimId: "clm_mock_14",
+        submittedAt: "2026-06-29T17:40"
     }
 ];

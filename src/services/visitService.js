@@ -27,6 +27,15 @@ export const getVisitsByCaregiver = async (caregiverId) => {
     return visits.filter((visit) => visit.caregiverId === Number(caregiverId));
 }
 
+// GET /api/visits?patientId=1, the patient's care history. Same shape as the
+// caregiver query and the same reason for living in the service: it becomes a
+// repository method, not a loop inside a page.
+export const getVisitsByPatient = async (patientId) => {
+    await delay(300);
+
+    return visits.filter((visit) => visit.patientId === Number(patientId));
+}
+
 export const getVisitById = async (id) => {
     await delay(300);
 
