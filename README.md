@@ -20,6 +20,7 @@ The visit verification core is modeled on Electronic Visit Verification (EVV), w
 - Visit list: every visit with its pipeline status, filtered by status and sorted by attention or by date. Filters live in the URL, so a filtered view is shareable and survives the back button
 - Visit detail: check-in and check-out times, assessment, and signature; a flagged visit derives and lists exactly what evidence is missing
 - Billing: ready-to-bill visits with hours worked and estimated cost, one-click mock claim submission, and a submitted-claims register with claim references
+- Patients: roster of everyone receiving care, and a patient record with their address, contact, what they need help with in general, and their full care history
 - Caregivers: team roster, add-caregiver form, and a per-caregiver onboarding document checklist (signed, pending, expiring) with a derived cleared-to-work badge; pending documents accept a cursive signature capture
 
 **For the caregiver (phone-width surface, one primary action per screen):**
@@ -59,7 +60,8 @@ Every transition has a cause: check-in, check-out with an evidence check, eviden
 - Derived state over stored flags: attention flags are computed from the clock and thresholds rather than stored on the visit, so nothing has to be written when a visit becomes late. `attentionFor` takes the current instant as a parameter instead of reading the clock, which keeps it pure and testable at fixed times. The dashboard counts, the missing-evidence panel, and the cleared-to-work badge are computed from the data at render time, so they can never disagree with the record.
 - `locationService` sits alongside the data services but is a device adapter, not a repository: no backend will ever replace it, because the device is the only authority on where it is. It resolves a result object rather than rejecting, since a refused permission is an ordinary outcome of a real check-in and not an exception.
 - The signed-in user is the only thing in React Context. Server data stays out of it: visits in Context would be a cache with no invalidation or staleness policy. The session stores a user id and rehydrates through the service on boot, the same shape a real client uses when it trades a token for `GET /api/auth/me`, which is why the session has three states rather than two: unknown, none, and a user.
-- Visits reference caregivers by id, with the name denormalized alongside for display. Names collide and change; ids do not.
+- Visits reference patients and caregivers by id, with the names denormalized alongside for display. Names collide and change; ids do not, and both are the foreign keys a relational schema needs.
+- Facts live at the level they are true at: what a patient needs help with in general belongs to the patient, what they raised during one visit belongs to that visit. Same words, different lifetimes.
 
 ## Running locally
 
@@ -101,6 +103,9 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 | Late check-in flag | View a scheduled visit whose appointment passed more than 15 minutes ago | Card and dashboard show a late check-in flag; the status pill still reads scheduled |
 | Missing check-out flag | View a visit in progress more than 2 hours past check-in | Flagged missing check-out; needs-review and billed visits are never flagged |
 | Flags update without a reload | Leave the dashboard open across a threshold | The flag appears on the next minute tick |
+| Patient record | Open a patient from the roster | Address, contact, standing concerns, and every visit on record newest first |
+| Patient round trip | From a visit, click the patient name, then a visit in their history | Reaches the patient record and back into a visit |
+| Unknown patient | Open /patients/999 | Not-found message with a way back, not a crash |
 | Responsive | Narrow the window below 640px | Sidebar collapses behind the menu button; menu opens, navigates, and closes |
 
 ## Roadmap
