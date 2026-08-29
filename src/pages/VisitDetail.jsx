@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router';
 import StatusPill from '../components/StatusPill';
 import { getVisitById } from '../services/visitService';
 import { formatDateTime, formatTime, formatLocation } from '../utils/format';
+import { VISIT_STATUS } from '../utils/status';
 import styles from './VisitDetail.module.css';
 
 // Evidence fields checked for the needs-review panel, in pipeline order.
@@ -51,7 +52,7 @@ const VisitDetail = () => {
                 </Link>
             </div>
 
-            {visit.status === 'needs review' && (
+            {visit.status === VISIT_STATUS.NEEDS_REVIEW && (
                 <div className={styles.missingPanel}>
                     <h4>Missing evidence</h4>
                     <ul>
