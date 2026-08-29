@@ -45,7 +45,11 @@ const VisitDetail = () => {
             <Link to="/visits" className={styles.backLink}>← Back to visits</Link>
 
             <div className={styles.headerRow}>
-                <h3>{visit.patientName}</h3>
+                <h3>
+                    <Link to={`/patients/${visit.patientId}`} className={styles.patientLink}>
+                        {visit.patientName}
+                    </Link>
+                </h3>
                 <StatusPill status={visit.status} />
                 <Link to={`/caregiver/visits/${visit.id}`} className={styles.caregiverFlowLink}>
                     Caregiver flow →
