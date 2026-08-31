@@ -4,6 +4,7 @@ import StatusPill from "../components/StatusPill";
 import { getPatientById } from "../services/patientService";
 import { getVisitsByPatient } from "../services/visitService";
 import { formatDateTime, formatCurrency } from "../utils/format";
+import LoadError from "../components/LoadError";
 import styles from "./PatientDetail.module.css";
 
 // Most recent first: a care history is read backwards from now, unlike a
@@ -16,6 +17,8 @@ const PatientDetail = () => {
     const [patient, setPatient] = useState(null);
     const [visitList, setVisitList] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(null);
+    const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
         let stale = false;
@@ -23,21 +26,39 @@ const PatientDetail = () => {
             // Both requests go out together rather than one after the other.
             // They do not depend on each other, so awaiting them in sequence
             // would spend two round trips to learn two independent facts.
-            const [foundPatient, theirVisits] = await Promise.all([
-                getPatientById(patientId),
-                getVisitsByPatient(patientId),
-            ]);
-            if (!stale) {
-                setPatient(foundPatient ?? null);
-                setVisitList(theirVisits);
-                setLoading(false);
+            try {
+                // Promise.all rejects as soon as either does, so one failed
+                // request fails the pair. That is the honest outcome here:
+                // half a patient record is not a patient record.
+                const [foundPatient, theirVisits] = await Promise.all([
+                    getPatientById(patientId),
+                    getVisitsByPatient(patientId),
+                ]);
+                if (!stale) {
+                    setPatient(foundPatient ?? null);
+                    setVisitList(theirVisits);
+                    setLoadError(null);
+                }
+            } catch (err) {
+                if (!stale) setLoadError(err.message);
+            } finally {
+                if (!stale) setLoading(false);
             }
         }
         fetchAll();
         return () => { stale = true; };
-    }, [patientId]);
+    }, [patientId, reloadKey]);
 
     if (loading) return (<p>Loading...</p>);
+
+    // Before not-found, for the same reason as VisitDetail: a failed request
+    // leaves patient null too, and those are different answers.
+    if (loadError) return (
+        <LoadError
+            message={`This patient record could not load. ${loadError}`}
+            onRetry={() => { setLoading(true); setReloadKey((key) => key + 1); }}
+        />
+    );
 
     if (!patient) return (
         <p>Patient not found. <Link to="/patients">Back to patients</Link></p>
