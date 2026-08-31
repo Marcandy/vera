@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router';
 import StatusPill from '../components/StatusPill';
 import { getVisitById } from '../services/visitService';
 import { formatDateTime, formatTime, formatLocation } from '../utils/format';
+import { VISIT_STATUS } from '../utils/status';
 import styles from './VisitDetail.module.css';
 
 // Evidence fields checked for the needs-review panel, in pipeline order.
@@ -44,14 +45,18 @@ const VisitDetail = () => {
             <Link to="/visits" className={styles.backLink}>← Back to visits</Link>
 
             <div className={styles.headerRow}>
-                <h3>{visit.patientName}</h3>
+                <h3>
+                    <Link to={`/patients/${visit.patientId}`} className={styles.patientLink}>
+                        {visit.patientName}
+                    </Link>
+                </h3>
                 <StatusPill status={visit.status} />
                 <Link to={`/caregiver/visits/${visit.id}`} className={styles.caregiverFlowLink}>
                     Caregiver flow →
                 </Link>
             </div>
 
-            {visit.status === 'needs review' && (
+            {visit.status === VISIT_STATUS.NEEDS_REVIEW && (
                 <div className={styles.missingPanel}>
                     <h4>Missing evidence</h4>
                     <ul>
