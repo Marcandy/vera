@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from "react-router";
 import VisitCard from "../components/VisitCard";
+import LoadError from "../components/LoadError";
 import styles from "./Visits.module.css";
 import { getVisits } from "../services/visitService";
 import { VISIT_STATUS, VISIT_STATUS_LIST, parseVisitStatus } from "../utils/status";
@@ -40,6 +41,8 @@ const SORTS = { attention: byAttention, date: byDate };
 
 const Visits = () => {
     const [visitList, setVisitList] = useState(null);
+    const [loadError, setLoadError] = useState(null);
+    const [reloadKey, setReloadKey] = useState(0);
 
     // Ticks so a visit crossing its threshold flags itself without a reload.
     const now = useNow();
@@ -60,12 +63,19 @@ const Visits = () => {
     useEffect(() => {
         let stale = false;
         async function fetchData() {
-            const visitListData = await getVisits();
-            if (!stale) setVisitList(visitListData);
+            try {
+                const visitListData = await getVisits();
+                if (!stale) {
+                    setVisitList(visitListData);
+                    setLoadError(null);
+                }
+            } catch (err) {
+                if (!stale) setLoadError(err.message);
+            }
         }
         fetchData();
         return () => { stale = true; };
-    }, []);
+    }, [reloadKey]);
 
     // Replace rather than push: filtering is not a place you navigated to,
     // so twelve chip clicks should not mean twelve presses of the back button
@@ -76,6 +86,13 @@ const Visits = () => {
         else next.set(key, value);
         setSearchParams(next, { replace: true });
     };
+
+    if (loadError) return (
+        <LoadError
+            message={`The visit list could not load. ${loadError}`}
+            onRetry={() => setReloadKey((key) => key + 1)}
+        />
+    );
 
     if (visitList === null) return <p>Loading...</p>
 
