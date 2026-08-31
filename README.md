@@ -16,7 +16,7 @@ The visit verification core is modeled on Electronic Visit Verification (EVV), w
 
 **For the administrator:**
 
-- Dashboard: what needs attention right now, as counts of flagged and billable visits plus the dollar value waiting on a claim; every tile drills into the filtered list
+- Dashboard: visits needing a nudge (a check-in that never happened, a visit still running long past its expected end), plus what needs attention right now, as counts of flagged and billable visits plus the dollar value waiting on a claim; every tile drills into the filtered list
 - Visit list: every visit with its pipeline status, filtered by status and sorted by attention or by date. Filters live in the URL, so a filtered view is shareable and survives the back button
 - Visit detail: check-in and check-out times, assessment, and signature; a flagged visit derives and lists exactly what evidence is missing
 - Billing: ready-to-bill visits with hours worked and estimated cost, one-click mock claim submission, and a submitted-claims register with claim references
@@ -29,6 +29,7 @@ The visit verification core is modeled on Electronic Visit Verification (EVV), w
 - Check out with a visit assessment and the patient's typed signature
 - Checking out without a signature warns first, then flags the visit for review instead of blocking the caregiver from leaving
 - Missing evidence can be supplied later, which is the only way a flagged visit becomes billable
+- A visit whose punch is overdue is flagged on the caregiver's own list while they can still fix it, because a time the office enters afterwards counts as a manual edit
 
 **Around the app:**
 
@@ -55,7 +56,7 @@ Every transition has a cause: check-in, check-out with an evidence check, eviden
 - Vite + React (JavaScript), React Router, CSS Modules. No UI libraries.
 - All data access goes through a service layer (`src/services`). Components never import mock data directly. The services expose async functions with realistic latency, so a real backend can replace the mock internals without changing a single component.
 - Mutations are domain verbs (`checkInVisit`, `checkOutVisit`, `supplyEvidence`, `submitClaim`, `addCaregiver`, `signDocument`), and state transition rules live inside them, not in components.
-- Derived state over stored flags: the dashboard counts, the missing-evidence panel, and the cleared-to-work badge are computed from the data at render time, so they can never disagree with the record.
+- Derived state over stored flags: attention flags are computed from the clock and thresholds rather than stored on the visit, so nothing has to be written when a visit becomes late. `attentionFor` takes the current instant as a parameter instead of reading the clock, which keeps it pure and testable at fixed times. The dashboard counts, the missing-evidence panel, and the cleared-to-work badge are computed from the data at render time, so they can never disagree with the record.
 - `locationService` sits alongside the data services but is a device adapter, not a repository: no backend will ever replace it, because the device is the only authority on where it is. It resolves a result object rather than rejecting, since a refused permission is an ordinary outcome of a real check-in and not an exception.
 - The signed-in user is the only thing in React Context. Server data stays out of it: visits in Context would be a cache with no invalidation or staleness policy. The session stores a user id and rehydrates through the service on boot, the same shape a real client uses when it trades a token for `GET /api/auth/me`, which is why the session has three states rather than two: unknown, none, and a user.
 - Visits reference caregivers by id, with the name denormalized alongside for display. Names collide and change; ids do not.
@@ -97,6 +98,9 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 | Submit claim | On Billing, submit a ready-to-bill claim | Confirmation with a claim reference; row moves to Submitted claims; both totals update |
 | Sign document | On Caregivers, sign a pending document | Signature renders in cursive; pill flips to signed; badge flips to cleared when it was the last one |
 | Expiring document | Check an expiring document's row | No Sign button; expiring is not signable by design |
+| Late check-in flag | View a scheduled visit whose appointment passed more than 15 minutes ago | Card and dashboard show a late check-in flag; the status pill still reads scheduled |
+| Missing check-out flag | View a visit in progress more than 2 hours past check-in | Flagged missing check-out; needs-review and billed visits are never flagged |
+| Flags update without a reload | Leave the dashboard open across a threshold | The flag appears on the next minute tick |
 | Responsive | Narrow the window below 640px | Sidebar collapses behind the menu button; menu opens, navigates, and closes |
 
 ## Roadmap

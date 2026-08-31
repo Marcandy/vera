@@ -3,7 +3,10 @@ import { Link } from "react-router";
 import { getVisits } from "../services/visitService";
 import { VISIT_STATUS } from "../utils/status";
 import { countByStatus, sumCost } from "../utils/visits";
-import { formatCurrency } from "../utils/format";
+import { formatCurrency, formatDateTime } from "../utils/format";
+import { visitsNeedingAttention } from "../utils/attention";
+import { useNow } from "../hooks/useNow";
+import AttentionFlag from "../components/AttentionFlag";
 import styles from "./Dashboard.module.css";
 
 // Denise's stated need is knowing what wants her within five seconds of
@@ -32,6 +35,11 @@ const PIPELINE = [
 const Dashboard = () => {
     const [visitList, setVisitList] = useState(null);
 
+    // The counts below answer what is in the pipeline. This answers what is
+    // going wrong right now, which the pipeline cannot see: a visit sitting
+    // scheduled past its appointment still counts as scheduled.
+    const now = useNow();
+
     useEffect(() => {
         let stale = false;
         async function fetchData() {
@@ -47,6 +55,7 @@ const Dashboard = () => {
     // Derived at render from the records themselves, so a count can never
     // disagree with the list it summarizes.
     const counts = countByStatus(visitList);
+    const needsAttention = visitsNeedingAttention(visitList, now);
     const readyToBillTotal = sumCost(
         visitList.filter((visit) => visit.status === VISIT_STATUS.READY_TO_BILL)
     );
@@ -86,6 +95,30 @@ const Dashboard = () => {
                     <span className={styles.tileBlurb}>Verified care not yet submitted</span>
                 </Link>
             </div>
+
+            {needsAttention.length > 0 && (
+                <div className={styles.nudgePanel}>
+                    <h4 className={styles.nudgeTitle}>Needs a nudge</h4>
+                    <ul className={styles.nudgeList}>
+                        {needsAttention.map(({ visit, attention }) => (
+                            <li key={visit.id} className={styles.nudgeRow}>
+                                <Link to={`/visits/${visit.id}`} className={styles.nudgeLink}>
+                                    {visit.patientName}
+                                </Link>
+                                <span className={styles.nudgeMeta}>
+                                    {visit.caregiverName} · {formatDateTime(visit.appointmentTime)}
+                                </span>
+                                <AttentionFlag attention={attention} />
+                            </li>
+                        ))}
+                    </ul>
+                    <p className={styles.nudgeNote}>
+                        Derived from the clock, not stored. A punch the office
+                        enters later is a manual edit, so the cheapest fix is the
+                        caregiver making it.
+                    </p>
+                </div>
+            )}
 
             <h4 className={styles.sectionTitle}>Everything else</h4>
             <div className={styles.pipelineRow}>

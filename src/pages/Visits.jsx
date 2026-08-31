@@ -4,6 +4,8 @@ import styles from "./Visits.module.css";
 import { getVisits } from "../services/visitService";
 import { VISIT_STATUS, VISIT_STATUS_LIST, parseVisitStatus } from "../utils/status";
 import { useEffect, useState } from "react";
+import { useNow } from "../hooks/useNow";
+import { attentionFor } from "../utils/attention";
 
 // Denise's attention order, lowest rank first. This is a property of THIS
 // screen, not of the collection, so it lives here and not in the service:
@@ -38,6 +40,9 @@ const SORTS = { attention: byAttention, date: byDate };
 
 const Visits = () => {
     const [visitList, setVisitList] = useState(null);
+
+    // Ticks so a visit crossing its threshold flags itself without a reload.
+    const now = useNow();
 
     // Filter and sort live in the URL, not in useState. This is VIEW state:
     // what am I looking at. That makes it shareable, bookmarkable, and it
@@ -145,7 +150,7 @@ const Visits = () => {
                     {ordered.map((visit) => (
                         <li key={visit.id}>
                             <Link to={`/visits/${visit.id}`} className={styles.cardLink}>
-                                <VisitCard visit={visit} />
+                                <VisitCard visit={visit} attention={attentionFor(visit, now)} />
                             </Link>
                         </li>
                     ))}

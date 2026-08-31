@@ -35,3 +35,15 @@
     padding: 24px;
     line-height: 1.5;
 }
+
+.nudge {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--status-alert);
+    border-left-width: 4px;
+    border-radius: 8px;
+    background-color: #fdecec;
+    color: #8a1216;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}

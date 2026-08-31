@@ -3,6 +3,8 @@ import { Link } from "react-router";
 import VisitCard from "../components/VisitCard";
 import { getVisitsByCaregiver } from "../services/visitService";
 import { useSession } from "../context/sessionContext";
+import { useNow } from "../hooks/useNow";
+import { attentionFor, visitsNeedingAttention } from "../utils/attention";
 import styles from "./MyVisits.module.css";
 
 // Chronological, not by attention rank. The dashboard orders by what needs
@@ -13,6 +15,11 @@ const MyVisits = () => {
     const { user, loading } = useSession();
 
     const [visitList, setVisitList] = useState(null);
+
+    // The caregiver gets the same derivation as the office. Telling Denise a
+    // punch was missed only reports the problem; telling Marcus while he can
+    // still fix it is the point.
+    const now = useNow();
 
     // The caregiver id comes from the session, never from the URL. A route
     // like /my-visits?caregiverId=3 would let anyone read a colleague's
@@ -72,10 +79,20 @@ const MyVisits = () => {
 
     if (visitList === null) return <p>Loading...</p>
 
+    const needsAttention = visitsNeedingAttention(visitList, now);
+
     return (
         <section className={styles.myVisits}>
             <h3>My visits</h3>
             <p className={styles.subtitle}>Signed in as {user.name}</p>
+
+            {needsAttention.length > 0 && (
+                <p className={styles.nudge}>
+                    <strong>{needsAttention.length === 1 ? "One visit needs" : `${needsAttention.length} visits need`} a punch.</strong>{" "}
+                    Fixing it yourself keeps the record clean. A time entered by
+                    the office later counts as a manual edit.
+                </p>
+            )}
 
             {visitList.length === 0 ? (
                 <p className={styles.emptyState}>
@@ -90,7 +107,7 @@ const MyVisits = () => {
                                 to={`/caregiver/visits/${visit.id}`}
                                 className={styles.cardLink}
                             >
-                                <VisitCard visit={visit} />
+                                <VisitCard visit={visit} attention={attentionFor(visit, now)} />
                             </Link>
                         </li>
                     ))}
