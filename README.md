@@ -116,7 +116,7 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 - Drawn signature capture
 - Document expiration dates, with the expiring status derived from them and a renewal flow
 - Real authentication: hashed passwords, a token, and server-side authorization, replacing the demo sign-in
-- Patient records: standing concerns, and prescriptions under a future skilled-care path
+- Prescriptions and medication reconciliation on the patient record, under a future skilled-care path
 - Real claim submission and remittance (837 and 835) to a payer or clearinghouse, replacing the mock
 - Stripe test-mode collection for private-pay clients
 - Automated tests: Vitest and React Testing Library for services and components, Playwright for the visit flow end to end
