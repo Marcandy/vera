@@ -8,6 +8,7 @@ import VisitDetail from './pages/VisitDetail';
 import Layout from './components/Layout';
 import Billing from './pages/Billing';
 import Caregivers from './pages/Caregivers';
+import CaregiverDetail from './pages/CaregiverDetail';
 import NotFound from './pages/NotFound';
 import CaregiverVisit from './pages/CaregiverVisit';
 import Homepage from './pages/Homepage';
@@ -27,6 +28,7 @@ function App() {
                 <Route path="/visits/:visitId" element={<VisitDetail />} />
                 <Route path="/billing" element={<Billing />} />
                 <Route path="/caregivers" element={<Caregivers />} />
+                <Route path="/caregivers/:caregiverId" element={<CaregiverDetail />} />
                 <Route path="/patients" element={<Patients />} />
                 <Route path="/patients/:patientId" element={<PatientDetail />} />
                 <Route path="/caregiver/visits/:visitId" element={<CaregiverVisit />} />
