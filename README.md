@@ -21,7 +21,7 @@ The visit verification core is modeled on Electronic Visit Verification (EVV), w
 - Visit detail: check-in and check-out times, assessment, and signature; a flagged visit derives and lists exactly what evidence is missing
 - Billing: ready-to-bill visits with hours worked and estimated cost, one-click mock claim submission, and a submitted-claims register with claim references
 - Patients: roster of everyone receiving care, and a patient record with their address, contact, what they need help with in general, and their full care history
-- Caregivers: team roster, add-caregiver form, and a per-caregiver onboarding document checklist (signed, pending, expiring) with a derived cleared-to-work badge; pending documents accept a cursive signature capture
+- Caregivers: team roster with a derived cleared-to-work badge and a one-line paperwork summary, an add-caregiver form, and a record page per caregiver holding their onboarding documents and visit history. Each document carries its issue and expiry dates, and its status (signed, pending, expiring, expired) is derived from them against the clock. Outstanding documents accept a cursive signature capture or a recorded file; a lapsed one accepts only a replacement
 
 **For the caregiver (phone-width surface, one primary action per screen):**
 
@@ -60,6 +60,8 @@ Every transition has a cause: check-in, check-out with an evidence check, eviden
 - Every read surface handles a failed request: the failure is kept in state, rendered as its own thing, and retryable without reloading the page. A failed request is checked before a not-found result, because both leave the record empty and only one of them means the record does not exist.
 - Derived state over stored flags: attention flags are computed from the clock and thresholds rather than stored on the visit, so nothing has to be written when a visit becomes late. `attentionFor` takes the current instant as a parameter instead of reading the clock, which keeps it pure and testable at fixed times. The dashboard counts, the missing-evidence panel, and the cleared-to-work badge are computed from the data at render time, so they can never disagree with the record.
 - Demo timestamps are anchored to the day the app is opened rather than written as fixed dates (`src/data/demoDay.js`). A seed full of literal dates is honest only the week it is written: two months on, every scheduled visit read as a late check-in and every visit in progress as a forgotten check-out, so the attention flags flagged all of them and meant nothing. The offsets place exactly one late check-in and one overrunning visit on today, and one line freezes the whole seed to a fixed moment when a real backend takes the data over.
+- Onboarding documents derive their status the same way. The seed used to assert `status: "expiring"`, which was the last stored judgment in the app and was true only on the day someone typed it. A document now carries its issue and expiry dates plus how it was received, and `documentStatus` computes the rest against an instant the caller passes in, exactly as `attentionFor` does. That is what made `expired` possible as a distinct state, and it separates two things the old shape conflated: expiring means renew soon and does not block work, expired means stop. Clearance blocks on outstanding and lapsed documents only.
+- A lapsed document cannot be signed away, only replaced. This is the evidence rule again in a second place: signing an expired CPR card does not renew it, so the service refuses, and the only exit is recording a current one. The document upload keeps a file's name, size and type and says plainly that the bytes are not stored, because inventing storage would be the one dishonest thing in the app.
 - `locationService` sits alongside the data services but is a device adapter, not a repository: no backend will ever replace it, because the device is the only authority on where it is. It resolves a result object rather than rejecting, since a refused permission is an ordinary outcome of a real check-in and not an exception.
 - The signed-in user is the only thing in React Context. Server data stays out of it: visits in Context would be a cache with no invalidation or staleness policy. The session stores a user id and rehydrates through the service on boot, the same shape a real client uses when it trades a token for `GET /api/auth/me`, which is why the session has three states rather than two: unknown, none, and a user.
 - Visits reference patients and caregivers by id, with the names denormalized alongside for display. Names collide and change; ids do not, and both are the foreign keys a relational schema needs.
@@ -100,8 +102,13 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 | Session persistence | Sign in, then reload the page | Still signed in, same role, with no flash of the signed-out view |
 | Sign out | Use the banner control | Returns to the home page; reloading does not restore the session |
 | Submit claim | On Billing, submit a ready-to-bill claim | Confirmation with a claim reference; row moves to Submitted claims; both totals update |
-| Sign document | On Caregivers, sign a pending document | Signature renders in cursive; pill flips to signed; badge flips to cleared when it was the last one |
-| Expiring document | Check an expiring document's row | No Sign button; expiring is not signable by design |
+| Sign document | Open a caregiver, sign an outstanding document | Signature renders in cursive; pill flips to signed; badge flips to cleared when it was the last thing blocking |
+| Expiring document | Open Marcus Reed | CPR reads expiring with days remaining, and he is still cleared to work: valid today is not the same as outstanding |
+| Expired document | Open Angela Brooks | CPR reads expired and names itself as what blocks clearance; the row offers Record renewal and no Sign button |
+| Expired is not signable | Try to sign a lapsed document | Refused by the service: a signature does not renew a credential |
+| Record a renewal | Record a file with a future expiry on the lapsed document | Status leaves expired; clearance still blocked while anything else is outstanding |
+| Record a lapsed date | Record a document with an expiry already in the past | Refused: that would file a document straight into the state it is meant to clear |
+| Document dates are derived | Leave a caregiver record open across an expiry | The pill changes on the next minute tick, with no reload |
 | Late check-in flag | View a scheduled visit whose appointment passed more than 15 minutes ago | Card and dashboard show a late check-in flag; the status pill still reads scheduled |
 | Missing check-out flag | View a visit in progress more than 2 hours past check-in | Flagged missing check-out; needs-review and billed visits are never flagged |
 | Flags update without a reload | Leave the dashboard open across a threshold | The flag appears on the next minute tick |
@@ -118,8 +125,9 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 - A distinct status between verified and billable once payer and authorization rules arrive with a real backend
 - Persistence: localStorage first, then a real API behind the same service contracts
 - Location at check-out as well as check-in, and a review surface that surfaces visits whose location was never captured
+- Real document storage: the upload records a file's name, size and type, and a backend is what would hold the bytes
+- Per-document-type rules, so a CPR certification cannot be recorded without an expiry while a background check can
 - Drawn signature capture
-- Document expiration dates, with the expiring status derived from them and a renewal flow
 - Real authentication: hashed passwords, a token, and server-side authorization, replacing the demo sign-in
 - Prescriptions and medication reconciliation on the patient record, under a future skilled-care path
 - Real claim submission and remittance (837 and 835) to a payer or clearinghouse, replacing the mock
