@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { getVisits, submitClaim } from "../services/visitService";
 import { formatDateTime, formatCurrency, hoursBetween } from "../utils/format";
+import LoadError from "../components/LoadError";
 import styles from "./Billing.module.css";
 import { VISIT_STATUS } from "../utils/status";
 import { sumCost } from "../utils/visits";
@@ -16,18 +17,28 @@ const Billing = () => {
     const [ submittingId, setSubmittingId ] = useState(null);
     const [ submitError, setSubmitError ] = useState(null);
     const [ submitSuccess, setSubmitSuccess ] = useState(null);
+    const [ loadError, setLoadError ] = useState(null);
+    const [ reloadKey, setReloadKey ] = useState(0);
 
     useEffect(() => {
         async function fetchVisits () {
-            const results = await getVisits();
-            setReadyToBill(results.filter((visit) => visit.status === VISIT_STATUS.READY_TO_BILL));
-            setBilled(results.filter((visit) => visit.status === VISIT_STATUS.BILLED));
-            setLoading(false);
+            try {
+                const results = await getVisits();
+                setReadyToBill(results.filter((visit) => visit.status === VISIT_STATUS.READY_TO_BILL));
+                setBilled(results.filter((visit) => visit.status === VISIT_STATUS.BILLED));
+                setLoadError(null);
+            } catch (err) {
+                setLoadError(err.message);
+            } finally {
+                // finally, so a failed load stops loading too. Leaving the
+                // flag set would trade a wrong page for a permanent spinner.
+                setLoading(false);
+            }
         }
 
         fetchVisits();
 
-    }, [])
+    }, [reloadKey])
 
     // auto-dismiss the success banner; cleanup cancels the old timer if a
     // new submit replaces the message or the page unmounts
@@ -57,6 +68,13 @@ const Billing = () => {
     }
 
     if (loading) return <p>Loading...</p>
+
+    if (loadError) return (
+        <LoadError
+            message={`Billing could not load. ${loadError}`}
+            onRetry={() => { setLoading(true); setReloadKey((key) => key + 1); }}
+        />
+    );
 
     return (
         <section className={styles.billing}>

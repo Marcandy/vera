@@ -4,6 +4,7 @@ import StatusPill from "../components/StatusPill";
 import { checkInVisit, checkOutVisit, getVisitById, supplyEvidence } from "../services/visitService";
 import styles from "./CaregiverVisit.module.css";
 import SignatureField from "../components/SignatureField";
+import LoadError from "../components/LoadError";
 import { formatDateTime, formatTime, formatLocation } from "../utils/format";
 import { VISIT_STATUS } from "../utils/status";
 import { getCurrentLocation } from "../services/locationService";
@@ -22,6 +23,8 @@ const CaregiverVisit = () => {
 
     const [visit, setVisit] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(null);
+    const [reloadKey, setReloadKey] = useState(0);
 
     const [error, setError] = useState(null);
     const [checkingIn, setCheckingIn] = useState(false);
@@ -35,15 +38,21 @@ const CaregiverVisit = () => {
     useEffect(() => {
         let stale = false;
         async function fetchData() {
-            const result = await getVisitById(Number(visitId));
-            if (!stale) {
-                setVisit(result ?? null);
-                setLoading(false);
+            try {
+                const result = await getVisitById(Number(visitId));
+                if (!stale) {
+                    setVisit(result ?? null);
+                    setLoadError(null);
+                }
+            } catch (err) {
+                if (!stale) setLoadError(err.message);
+            } finally {
+                if (!stale) setLoading(false);
             }
         }
         fetchData();
         return () => { stale = true; };
-    }, [visitId]);
+    }, [visitId, reloadKey]);
 
     async function handleCheckIn () {
         setError(null);
@@ -99,6 +108,15 @@ const CaregiverVisit = () => {
     }
 
     if (loading) return (<p>Loading...</p>);
+
+    // A caregiver standing at a door needs to know the difference between
+    // "this visit is not yours" and "we could not reach the office".
+    if (loadError) return (
+        <LoadError
+            message={`This visit could not load. ${loadError}`}
+            onRetry={() => { setLoading(true); setReloadKey((key) => key + 1); }}
+        />
+    );
 
     if (!visit) return (<p>Visit not found. <Link to="/visits">Back to visits</Link></p>);
 

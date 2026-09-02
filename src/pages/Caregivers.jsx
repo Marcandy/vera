@@ -3,6 +3,7 @@ import styles from "./Caregivers.module.css";
 import StatusPill from "../components/StatusPill";
 import SignatureField from "../components/SignatureField";
 import { addCaregiver, getCaregivers, signDocument } from "../services/caregiverService";
+import LoadError from "../components/LoadError";
 
 // cleared to work is derived from the documents, never stored
 const isCleared = (caregiver) =>
@@ -10,6 +11,8 @@ const isCleared = (caregiver) =>
 
 const Caregivers = () => {
     const [caregiverList, setCaregiverList] = useState(null);
+    const [loadError, setLoadError] = useState(null);
+    const [reloadKey, setReloadKey] = useState(0);
     
     const [error, setError] = useState(null);
     const [adding, setAdding] = useState(false);
@@ -25,14 +28,19 @@ const Caregivers = () => {
     useEffect(()=> {
         let stale = false;
         async function fetchGiverData() {
-            const caregiverData = await getCaregivers();
-            if(!stale) {
-                setCaregiverList(caregiverData);
+            try {
+                const caregiverData = await getCaregivers();
+                if(!stale) {
+                    setCaregiverList(caregiverData);
+                    setLoadError(null);
+                }
+            } catch (err) {
+                if (!stale) setLoadError(err.message);
             }
         }
         fetchGiverData();
         return () => { stale = true }; // prevent old data saved updated in state when component is unmounted
-    }, [])
+    }, [reloadKey])
 
     async function handleAddCaregiver(e) {
         e.preventDefault();
@@ -67,6 +75,13 @@ const Caregivers = () => {
             setSigning(false);
         }
     }
+
+    if (loadError) return (
+        <LoadError
+            message={`The caregiver roster could not load. ${loadError}`}
+            onRetry={() => setReloadKey((key) => key + 1)}
+        />
+    );
 
     if (caregiverList === null) return (<p>Loading...</p>);
 

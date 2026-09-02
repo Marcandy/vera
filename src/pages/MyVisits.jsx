@@ -5,6 +5,7 @@ import { getVisitsByCaregiver } from "../services/visitService";
 import { useSession } from "../context/sessionContext";
 import { useNow } from "../hooks/useNow";
 import { attentionFor, visitsNeedingAttention } from "../utils/attention";
+import LoadError from "../components/LoadError";
 import styles from "./MyVisits.module.css";
 
 // Chronological, not by attention rank. The dashboard orders by what needs
@@ -15,6 +16,8 @@ const MyVisits = () => {
     const { user, loading } = useSession();
 
     const [visitList, setVisitList] = useState(null);
+    const [loadError, setLoadError] = useState(null);
+    const [reloadKey, setReloadKey] = useState(0);
 
     // The caregiver gets the same derivation as the office. Telling Denise a
     // punch was missed only reports the problem; telling Marcus while he can
@@ -32,12 +35,19 @@ const MyVisits = () => {
 
         let stale = false;
         async function fetchVisits() {
-            const visits = await getVisitsByCaregiver(caregiverId);
-            if (!stale) setVisitList(visits);
+            try {
+                const visits = await getVisitsByCaregiver(caregiverId);
+                if (!stale) {
+                    setVisitList(visits);
+                    setLoadError(null);
+                }
+            } catch (err) {
+                if (!stale) setLoadError(err.message);
+            }
         }
         fetchVisits();
         return () => { stale = true; };
-    }, [caregiverId]);
+    }, [caregiverId, reloadKey]);
 
     // While the session is still unknown, user is null but nobody is signed
     // out yet. Answering here would flash "nobody is signed in" at a
@@ -76,6 +86,13 @@ const MyVisits = () => {
             </section>
         );
     }
+
+    if (loadError) return (
+        <LoadError
+            message={`Your visits could not load. ${loadError}`}
+            onRetry={() => setReloadKey((key) => key + 1)}
+        />
+    );
 
     if (visitList === null) return <p>Loading...</p>
 

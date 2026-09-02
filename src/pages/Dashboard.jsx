@@ -7,6 +7,7 @@ import { formatCurrency, formatDateTime } from "../utils/format";
 import { visitsNeedingAttention } from "../utils/attention";
 import { useNow } from "../hooks/useNow";
 import AttentionFlag from "../components/AttentionFlag";
+import LoadError from "../components/LoadError";
 import styles from "./Dashboard.module.css";
 
 // Denise's stated need is knowing what wants her within five seconds of
@@ -34,6 +35,11 @@ const PIPELINE = [
 
 const Dashboard = () => {
     const [visitList, setVisitList] = useState(null);
+    const [loadError, setLoadError] = useState(null);
+    // Bumping this re-runs the effect, which is what Try again needs: the
+    // request is the effect's job, so retrying means asking for the effect
+    // again rather than calling the service from a handler.
+    const [reloadKey, setReloadKey] = useState(0);
 
     // The counts below answer what is in the pipeline. This answers what is
     // going wrong right now, which the pipeline cannot see: a visit sitting
@@ -43,12 +49,28 @@ const Dashboard = () => {
     useEffect(() => {
         let stale = false;
         async function fetchData() {
-            const visits = await getVisits();
-            if (!stale) setVisitList(visits);
+            try {
+                const visits = await getVisits();
+                if (!stale) {
+                    setVisitList(visits);
+                    setLoadError(null);
+                }
+            } catch (err) {
+                // Without this the promise rejects into nothing and the page
+                // sits on "Loading..." for as long as anyone leaves it open.
+                if (!stale) setLoadError(err.message);
+            }
         }
         fetchData();
         return () => { stale = true; };
-    }, []);
+    }, [reloadKey]);
+
+    if (loadError) return (
+        <LoadError
+            message={`The dashboard could not load. ${loadError}`}
+            onRetry={() => setReloadKey((key) => key + 1)}
+        />
+    );
 
     if (visitList === null) return <p>Loading...</p>
 

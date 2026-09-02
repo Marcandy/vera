@@ -4,6 +4,7 @@ import StatusPill from '../components/StatusPill';
 import { getVisitById } from '../services/visitService';
 import { formatDateTime, formatTime, formatLocation } from '../utils/format';
 import { VISIT_STATUS } from '../utils/status';
+import LoadError from '../components/LoadError';
 import styles from './VisitDetail.module.css';
 
 // Evidence fields checked for the needs-review panel, in pipeline order.
@@ -20,21 +21,39 @@ const VisitDetail = () => {
 
     const [visit, setVisit] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(null);
+    const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
         let stale = false;
         async function fetchData() {
-            const result = await getVisitById(Number(visitId));
-            if (!stale) {
-                setVisit(result ?? null);
-                setLoading(false);
+            try {
+                const result = await getVisitById(Number(visitId));
+                if (!stale) {
+                    setVisit(result ?? null);
+                    setLoadError(null);
+                }
+            } catch (err) {
+                if (!stale) setLoadError(err.message);
+            } finally {
+                if (!stale) setLoading(false);
             }
         }
         fetchData();
         return () => { stale = true; };
-    }, [visitId]);
+    }, [visitId, reloadKey]);
 
     if (loading) return (<p>Loading...</p>);
+
+    // Checked before the not-found branch on purpose. A failed request also
+    // leaves visit as null, and telling someone the visit does not exist when
+    // the truth is that we could not ask is a different, wrong answer.
+    if (loadError) return (
+        <LoadError
+            message={`This visit could not load. ${loadError}`}
+            onRetry={() => { setLoading(true); setReloadKey((key) => key + 1); }}
+        />
+    );
 
     if (!visit) return (<p>Visit not found. <Link to="/visits">Back to visits</Link></p>);
 

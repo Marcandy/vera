@@ -57,6 +57,7 @@ Every transition has a cause: check-in, check-out with an evidence check, eviden
 - Vite + React (JavaScript), React Router, CSS Modules. No UI libraries.
 - All data access goes through a service layer (`src/services`). Components never import mock data directly. The services expose async functions with realistic latency, so a real backend can replace the mock internals without changing a single component.
 - Mutations are domain verbs (`checkInVisit`, `checkOutVisit`, `supplyEvidence`, `submitClaim`, `addCaregiver`, `signDocument`), and state transition rules live inside them, not in components.
+- Every read surface handles a failed request: the failure is kept in state, rendered as its own thing, and retryable without reloading the page. A failed request is checked before a not-found result, because both leave the record empty and only one of them means the record does not exist.
 - Derived state over stored flags: attention flags are computed from the clock and thresholds rather than stored on the visit, so nothing has to be written when a visit becomes late. `attentionFor` takes the current instant as a parameter instead of reading the clock, which keeps it pure and testable at fixed times. The dashboard counts, the missing-evidence panel, and the cleared-to-work badge are computed from the data at render time, so they can never disagree with the record.
 - `locationService` sits alongside the data services but is a device adapter, not a repository: no backend will ever replace it, because the device is the only authority on where it is. It resolves a result object rather than rejecting, since a refused permission is an ordinary outcome of a real check-in and not an exception.
 - The signed-in user is the only thing in React Context. Server data stays out of it: visits in Context would be a cache with no invalidation or staleness policy. The session stores a user id and rehydrates through the service on boot, the same shape a real client uses when it trades a token for `GET /api/auth/me`, which is why the session has three states rather than two: unknown, none, and a user.
@@ -106,6 +107,9 @@ Automated testing was out of scope for this phase, so testing is a scripted manu
 | Patient record | Open a patient from the roster | Address, contact, standing concerns, and every visit on record newest first |
 | Patient round trip | From a visit, click the patient name, then a visit in their history | Reaches the patient record and back into a visit |
 | Unknown patient | Open /patients/999 | Not-found message with a way back, not a crash |
+| Failed load | Simulate a failing read on any list or detail page | The page names the failure and offers Try again; it never sits on Loading |
+| Retry | Recover the connection and press Try again | The page loads without a browser refresh and the error clears |
+| Failure is not not-found | Fail the read on a visit or patient page | Reads as could-not-load, never as "not found" |
 | Responsive | Narrow the window below 640px | Sidebar collapses behind the menu button; menu opens, navigates, and closes |
 
 ## Roadmap
