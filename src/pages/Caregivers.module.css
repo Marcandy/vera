@@ -95,11 +95,29 @@
     gap: 12px;
 }
 
+/* the roster row is a link into the caregiver's record now, so the wrapper
+   carries the affordance and its owner styles it, matching Patients */
+.cardLink {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
 .caregiverCard {
     background-color: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 16px;
+}
+
+.cardLink:hover .caregiverCard {
+    border-color: var(--vera-primary);
+    box-shadow: 0 2px 8px rgba(34, 48, 60, 0.08);
+}
+
+.cardLink:focus-visible {
+    outline: 2px solid var(--vera-primary);
+    outline-offset: 2px;
 }
 
 .cardHeader {
@@ -121,51 +139,26 @@
     font-weight: 600;
 }
 
+/* not cleared now means a real block (something outstanding or lapsed),
+   not merely a renewal to chase, so it reads in the alert family */
 .notClearedBadge {
-    color: #8a5a09;
+    color: #a61b1b;
     font-size: 0.85rem;
     font-weight: 600;
 }
 
 .caregiverPhone {
-    margin: 0 0 12px;
+    margin: 0 0 6px;
     color: var(--text-muted);
     font-size: 0.95rem;
 }
 
-.docList {
-    list-style: none;
+/* the one line summarizing paperwork; the documents themselves live on the
+   caregiver's own page */
+.paperwork {
     margin: 0;
-    padding: 0;
-    border-top: 1px solid var(--border);
-}
-
-/* the li stacks: row line on top, sign form below when open */
-.docRow {
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border);
-}
-
-.docRowLine {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* pill + Sign button, pushed to the right edge */
-.rowActions {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.docRow:last-child {
-    border-bottom: none;
-}
-
-.docName {
     font-size: 0.9rem;
+    color: var(--text);
 }
 
 .emptyState {
@@ -174,77 +167,6 @@
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 24px;
-}
-
-/* doc signing: quiet row action, accent color only on the confirm */
-.signButton {
-    background-color: #ffffff;
-    color: var(--vera-primary);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 4px 10px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.signButton:hover {
-    border-color: var(--vera-secondary);
-    color: var(--vera-secondary-dark);
-}
-
-.signForm {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border);
-}
-
-.signActions {
-    display: flex;
-    gap: 8px;
-}
-
-.captureButton {
-    background-color: var(--btn-bg);
-    color: var(--btn-text);
-    border: none;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.captureButton:hover {
-    background-color: var(--btn-hover);
-}
-
-.captureButton:disabled {
-    opacity: 0.6;
-    cursor: default;
-}
-
-.cancelButton {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.cancelButton:hover {
-    color: var(--text);
-}
-
-/* the captured signature, rendered in script next to the doc name */
-.signedName {
-    font-family: var(--font-signature);
-    color: var(--text-muted);
-    font-size: 0.95rem;
 }
 
 /* phone: form fields stack, and name + cleared badge may wrap */

@@ -10,6 +10,26 @@ export const formatTime = (isoString) =>
         ? new Date(isoString).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
         : "—";
 
+// Date without a time, for facts that are true for a whole day. A credential
+// expires on a date; printing "11:59 PM" beside it would imply a precision
+// the record does not have.
+export const formatDate = (isoString) =>
+    isoString
+        ? new Date(isoString).toLocaleDateString("en-US", {
+            month: "short", day: "numeric", year: "numeric"
+        })
+        : "Not recorded";
+
+// Bytes as a person reads them. Kept in bytes on the record, because that is
+// what the file system reports and what a server would store; rounding
+// belongs at render, like every other formatter here.
+export const formatFileSize = (bytes) => {
+    if (!Number.isFinite(bytes)) return "";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 export const formatCurrency = (amount) =>
     amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
