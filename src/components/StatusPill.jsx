@@ -10,6 +10,7 @@ const STATUS_CLASSES = {
     [DOCUMENT_STATUS.SIGNED]: styles.signed,
     [DOCUMENT_STATUS.PENDING]: styles.pending,
     [DOCUMENT_STATUS.EXPIRING]: styles.expiring,
+    [DOCUMENT_STATUS.EXPIRED]: styles.expired,
 }
 
 const StatusPill = ({ status }) => {
