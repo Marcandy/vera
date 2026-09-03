@@ -104,6 +104,29 @@ export const credentialsNeedingAttention = (caregivers, now) =>
         )
         .sort(byExpiry);
 
+// A renewal the caregiver sent in that the office has not accepted yet.
+//
+// Deliberately NOT a document status. The document's status still describes the
+// credential in force: a CPR card expiring in three weeks is still expiring
+// while a replacement waits to be checked, and a lapsed one is still lapsed.
+// Folding the two together would let submitting a file change what the record
+// claims about the caregiver, which is the whole thing verification exists to
+// prevent.
+export const hasPendingSubmission = (document) => Boolean(document.submission);
+
+// Everything across the roster waiting on the office to accept it. This is
+// Denise's queue, and it is the counterpart to credentialsNeedingAttention:
+// that one is work she has to chase, this one is work already done that only
+// she can finish.
+export const submissionsAwaitingReview = (caregivers) =>
+    caregivers
+        .flatMap((caregiver) =>
+            caregiver.documents
+                .filter(hasPendingSubmission)
+                .map((document) => ({ caregiver, document }))
+        )
+        .sort((a, b) => a.document.submission.submittedAt.localeCompare(b.document.submission.submittedAt));
+
 // Whole days until expiry, rounded away from zero, so "expires in 1 day"
 // covers the last few hours rather than reading as zero. Negative once the
 // date has passed, which is what "18 days ago" needs.

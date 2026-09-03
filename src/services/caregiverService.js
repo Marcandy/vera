@@ -75,6 +75,7 @@ export const addCaregiver = async ({ name, phone }) => {
         fileSize: null,
         fileType: null,
         receivedAt: null,
+        submission: null,
     });
 
     const newCaregiver = {
@@ -138,6 +139,90 @@ export const signDocument = async (caregiverId, documentId, signature) => {
     return updated;
 }
 
+// POST /api/caregivers/{id}/documents/{documentId}/submission
+//
+// The CAREGIVER sending in a renewal themselves. This is how the real products
+// work: the aide photographs the new card rather than driving it to the office.
+//
+// It does NOT take effect. The submission sits beside the live document until
+// someone at the agency accepts it, because the agency is what has to produce a
+// valid credential at a state survey, and a credential that cleared itself is a
+// credential nobody checked. Two consequences worth stating: renewing early
+// cannot invalidate a card that is still working, and a lapsed caregiver stays
+// lapsed until the office looks, which is the honest answer.
+export const submitDocumentRenewal = async (
+    caregiverId,
+    documentId,
+    { fileName, fileSize, fileType, issuedAt, expiresAt }
+) => {
+    await delay(500);
+
+    const idx = findCaregiverIdx(caregiverId);
+    findDocument(caregivers[idx], documentId);
+
+    if (!fileName?.trim()) {
+        throw new Error("Choose a file to send in");
+    }
+
+    if (expiresAt) {
+        const expires = new Date(expiresAt).getTime();
+
+        if (Number.isNaN(expires)) {
+            throw new Error("Expiry date is not a valid date");
+        }
+
+        if (expires <= Date.now()) {
+            throw new Error("That expiry date has already passed; send in a current document");
+        }
+    }
+
+    const updated = withDocument(caregivers[idx], documentId, {
+        submission: {
+            fileName: fileName.trim(),
+            fileSize: fileSize ?? null,
+            fileType: fileType ?? null,
+            issuedAt: issuedAt || null,
+            expiresAt: expiresAt || null,
+            submittedAt: new Date().toISOString(),
+        },
+    });
+
+    caregivers[idx] = updated;
+    return updated;
+}
+
+// POST /api/caregivers/{id}/documents/{documentId}/submission/acceptance
+//
+// The office accepting what was sent in. Only here does a submitted renewal
+// become the credential of record: the pending values are promoted onto the
+// document and the submission slot is emptied.
+//
+// There is deliberately no "accept" that invents evidence. Accepting a
+// submission that does not exist is a 409, for the same reason no button
+// resolves a visit missing its signature.
+export const acceptDocumentSubmission = async (caregiverId, documentId) => {
+    await delay(300);
+
+    const idx = findCaregiverIdx(caregiverId);
+    const document = findDocument(caregivers[idx], documentId);
+
+    if (!document.submission) {
+        throw new Error("There is nothing waiting to be accepted on this document");
+    }
+
+    const { submittedAt, ...credential } = document.submission;
+
+    const updated = withDocument(caregivers[idx], documentId, {
+        ...credential,
+        signature: null,
+        receivedAt: submittedAt,
+        submission: null,
+    });
+
+    caregivers[idx] = updated;
+    return updated;
+}
+
 // POST /api/caregivers/{id}/documents/{documentId}/file
 //
 // Records that a file arrived. It does NOT store the file: there is no
@@ -188,6 +273,10 @@ export const uploadDocument = async (
         issuedAt: issuedAt || null,
         expiresAt: expiresAt || null,
         receivedAt: new Date().toISOString(),
+        // Recording a document directly SUPERSEDES anything the caregiver sent
+        // in. Leaving the submission pending would let someone accept it later
+        // and overwrite this newer credential with the older one it replaced.
+        submission: null,
     });
 
     caregivers[idx] = updated;
