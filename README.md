@@ -54,7 +54,7 @@ Every transition has a cause: check-in, check-out with an evidence check, eviden
 
 ## Architecture
 
-- Vite + React (JavaScript), React Router, CSS Modules. No UI libraries.
+- Vite + React (JavaScript), React Router, CSS Modules. No UI libraries. Spring Boot 3.5 and JPA behind `/api`, on H2 in development.
 - All data access goes through a service layer (`src/services`). Components never import mock data directly. The services expose async functions with realistic latency, so a real backend can replace the mock internals without changing a single component.
 - Mutations are domain verbs (`checkInVisit`, `checkOutVisit`, `supplyEvidence`, `submitClaim`, `addCaregiver`, `signDocument`), and state transition rules live inside them, not in components.
 - Every read surface handles a failed request: the failure is kept in state, rendered as its own thing, and retryable without reloading the page. A failed request is checked before a not-found result, because both leave the record empty and only one of them means the record does not exist.
@@ -66,6 +66,10 @@ Every transition has a cause: check-in, check-out with an evidence check, eviden
 - The named read verbs delegate to that query but fail closed. An absent filter in `getVisits` means no restriction, which is right for an optional parameter and dangerous for a required one, so `getVisitsByCaregiver` rejects a missing id instead of quietly answering with everybody's visits.
 - `serviceType` records what care was delivered, which the visit record previously did not carry at all. The gap was easy to miss because a visit has an assessment, but that is a caregiver's note about how the visit went, and nothing can bill, group or audit against a paragraph. It is a controlled vocabulary for the same reason the statuses are, and it becomes an enum on the entity.
 - Credential attention is the same derivation as visit attention, pointed at a different record. `credentialsNeedingAttention` flattens the roster into the documents that are lapsed or inside their renewal window, and orders them by expiry date alone: expired sorts ahead of expiring for free, because those dates are already in the past, and within each group the one that has been wrong longest comes first. A rank table would have said the same thing while being able to disagree with the dates. Documents that were never received are deliberately excluded, for the same reason a scheduled visit is not an attention item: a new hire's outstanding paperwork is a known situation the roster already shows, while a credential quietly lapsing is the one nobody notices until an audit does.
+- Visits are served by a Spring Boot API (`backend/`); everything else is still a mock service in the browser. The swap was the test of the whole architecture: `getVisits` and the rest kept their names, arguments and return values, and only their internals changed from filtering an array to calling `fetch`. Not one page, component, hook or util was edited. Before the swap, the same assertions were run against both the mock and the API to confirm they answered identically, field for field, across all fourteen visits and ten query combinations.
+- The rules moved with them, which was the point. The four-field evidence check and every status transition guard now run in the Java service rather than the browser. A rule the client enforces is not a rule: it was previously possible for anything reaching the service to move a visit to ready-to-bill without a signature. The client keeps its copy only so a button can be disabled before the round trip.
+- The entity holds relations, the DTO carries names. `Visit` has `@ManyToOne` to patient and caregiver and no denormalized strings; `VisitDto` sends both the ids and the names so a list needs no second request. Normalizing for the table and denormalizing for the client are both right, which is why they are separate shapes. Both relations are lazy and the queries `JOIN FETCH`, so a list of visits is one query rather than twenty nine.
+- Types that mean the same thing in Java and in the database: `Instant` in `TIMESTAMP WITH TIME ZONE` rather than `LocalDateTime`, since the claim an EVV record makes is about when care happened and Philadelphia shifts an hour twice a year; `BigDecimal` for money, never a double; enums persisted by name, never by ordinal, so reordering a constant cannot rewrite history. The DTO pins one timestamp format, because the browser sorts these lists by comparing the raw strings and a feed that mixed `...:00Z` with `...:00.000Z` would order the day wrong without failing anywhere.
 - `locationService` sits alongside the data services but is a device adapter, not a repository: no backend will ever replace it, because the device is the only authority on where it is. It resolves a result object rather than rejecting, since a refused permission is an ordinary outcome of a real check-in and not an exception.
 - The signed-in user is the only thing in React Context. Server data stays out of it: visits in Context would be a cache with no invalidation or staleness policy. The session stores a user id and rehydrates through the service on boot, the same shape a real client uses when it trades a token for `GET /api/auth/me`, which is why the session has three states rather than two: unknown, none, and a user.
 - Visits reference patients and caregivers by id, with the names denormalized alongside for display. Names collide and change; ids do not, and both are the foreign keys a relational schema needs.
@@ -73,10 +77,27 @@ Every transition has a cause: check-in, check-out with an evidence check, eviden
 
 ## Running locally
 
+The visit data now comes from a Spring Boot API. Everything else is still served
+from mock services in the browser.
+
+Start the API first:
+
+```
+cd backend
+./mvnw spring-boot:run
+```
+
+Then the frontend, in a second terminal:
+
 ```
 npm install
 npm run dev
 ```
+
+Vite proxies `/api` to `localhost:8080`, so the browser sees one origin and CORS
+stays a production concern. The API seeds an in-memory H2 database on startup,
+which means visit data now survives a page reload and resets when the API
+restarts.
 
 Production build: `npm run build`.
 
