@@ -13,6 +13,9 @@ const VisitCard = ({ visit, attention = null }) => {
                 <dt>Caregiver</dt>
                 <dd>{visit.caregiverName}</dd>
 
+                <dt>Service</dt>
+                <dd>{visit.serviceType}</dd>
+
                 <dt>Appointment</dt>
                 <dd>{formatDateTime(visit.appointmentTime)}</dd>
             </dl>
