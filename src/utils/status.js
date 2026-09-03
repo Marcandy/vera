@@ -21,7 +21,14 @@ export const DOCUMENT_STATUS = {
     SIGNED: "signed",
     PENDING: "pending",
     EXPIRING: "expiring",
+    EXPIRED: "expired",
 };
+
+// EXPIRED is what a stored status could never say. While the seed asserted
+// "expiring", a document that had actually lapsed still read as merely
+// expiring forever, because nothing re-evaluated it. Deriving the status from
+// expiresAt made the lapsed case fall out on its own, and it is the one that
+// has to block clearance: see src/utils/documents.js.
 
 // PIPELINE order: the sequence a visit actually moves through. Deliberately
 // not attention order, which is a screen's opinion about what Denise should

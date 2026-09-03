@@ -22,3 +22,8 @@
 .signed   { background-color: #e3f5e9; color: #1a7f37; }
 .pending  { background-color: #fdf3df; color: #8a5a09; }
 .expiring { background-color: #fdecea; color: #a61b1b; }
+
+/* expired is the only document status that blocks a caregiver from working,
+   so it carries an outline the softer pills do not. The solid red fill stays
+   reserved for needs review: two solid alarms compete rather than rank. */
+.expired  { background-color: #fdecea; color: #a61b1b; border: 1px solid #d98c86; }

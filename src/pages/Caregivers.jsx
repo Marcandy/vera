@@ -1,29 +1,42 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
 import styles from "./Caregivers.module.css";
-import StatusPill from "../components/StatusPill";
-import SignatureField from "../components/SignatureField";
-import { addCaregiver, getCaregivers, signDocument } from "../services/caregiverService";
+import { addCaregiver, getCaregivers } from "../services/caregiverService";
+import { documentSummary, isClearedToWork } from "../utils/documents";
+import { DOCUMENT_STATUS } from "../utils/status";
+import { useNow } from "../hooks/useNow";
 import LoadError from "../components/LoadError";
 
-// cleared to work is derived from the documents, never stored
-const isCleared = (caregiver) =>
-    caregiver.documents.every((doc) => doc.status === "signed");
+// One line telling Denise what is wrong with this caregiver's paperwork,
+// without making her read four rows to find out. The detail page is where
+// the documents themselves live now.
+const paperworkLine = (caregiver, now) => {
+    const summary = documentSummary(caregiver, now);
+
+    const problems = [
+        summary[DOCUMENT_STATUS.EXPIRED] && `${summary[DOCUMENT_STATUS.EXPIRED]} expired`,
+        summary[DOCUMENT_STATUS.PENDING] && `${summary[DOCUMENT_STATUS.PENDING]} outstanding`,
+        summary[DOCUMENT_STATUS.EXPIRING] && `${summary[DOCUMENT_STATUS.EXPIRING]} expiring soon`,
+    ].filter(Boolean);
+
+    return problems.length === 0
+        ? `All ${summary.total} documents current`
+        : problems.join(" · ");
+};
 
 const Caregivers = () => {
     const [caregiverList, setCaregiverList] = useState(null);
     const [loadError, setLoadError] = useState(null);
     const [reloadKey, setReloadKey] = useState(0);
-    
+
     const [error, setError] = useState(null);
     const [adding, setAdding] = useState(false);
     const [firstLast, setFirstLast] = useState("");
     const [phone, setPhone] = useState("");
 
-    // which row's sign form is open: null or { caregiverId, docName }, one at a time
-    const [signingDoc, setSigningDoc] = useState(null);
-    const [signatureValue, setSignatureValue] = useState("");
-    const [signing, setSigning] = useState(false);
-    const [signError, setSignError] = useState(null);
+    // Clearance and the expiring count are derived from the clock, so this
+    // page ticks for the same reason the dashboard does.
+    const now = useNow();
 
     useEffect(()=> {
         let stale = false;
@@ -58,24 +71,6 @@ const Caregivers = () => {
         }
     }
 
-    async function handleSignDocument(caregiverId, docName) {
-        setSignError(null);
-        setSigning(true);
-
-        try {
-            const updated = await signDocument(caregiverId, docName, signatureValue);
-            setCaregiverList((prev) =>
-                prev.map((c) => (c.id === updated.id ? updated : c))
-            )
-            setSigningDoc(null);
-            setSignatureValue("");
-        } catch (err) {
-            setSignError(err.message);
-        } finally {
-            setSigning(false);
-        }
-    }
-
     if (loadError) return (
         <LoadError
             message={`The caregiver roster could not load. ${loadError}`}
@@ -88,7 +83,7 @@ const Caregivers = () => {
     return (
         <section className={styles.caregivers}>
             <h3 className={styles.title}>Caregivers</h3>
-            
+
             <form className={styles.addForm} onSubmit={handleAddCaregiver}>
                 <h4 className={styles.addTitle}>Add a caregiver</h4>
                 <div className={styles.fieldRow}>
@@ -124,88 +119,31 @@ const Caregivers = () => {
             {caregiverList.length === 0 ? (
                 <p className={styles.emptyState}>
                     No caregivers yet. Add your first caregiver above to start
-                    tracking their onboarding documents (signed, pending,
-                    expiring) and see who is cleared to work.
+                    tracking their onboarding documents and see who is cleared
+                    to work.
                 </p>
             ) : (
                 <ul className={styles.roster}>
-                    {caregiverList.map((caregiver) => (
-                        <li key={caregiver.id} className={styles.caregiverCard}>
-                            <div className={styles.cardHeader}>
-                                <h4 className={styles.caregiverName}>{caregiver.name}</h4>
-                                {isCleared(caregiver) ? (
-                                    <span className={styles.clearedBadge}>Cleared to work</span>
-                                ) : (
-                                    <span className={styles.notClearedBadge}>Documents outstanding</span>
-                                )}
-                            </div>
-                            <p className={styles.caregiverPhone}>{caregiver.phone}</p>
+                    {caregiverList.map((caregiver) => {
+                        const cleared = isClearedToWork(caregiver, now);
 
-                            <ul className={styles.docList}>
-                                {caregiver.documents.map((doc) => {
-                                    const isSigningThis =
-                                        signingDoc?.caregiverId === caregiver.id &&
-                                        signingDoc?.docName === doc.name;
-
-                                    return (
-                                        <li key={doc.name} className={styles.docRow}>
-                                            <div className={styles.docRowLine}>
-                                                <span className={styles.docName}>{doc.name}</span>
-                                                {doc.signature && (
-                                                    <span className={styles.signedName}>{doc.signature}</span>
-                                                )}
-                                                <span className={styles.rowActions}>
-                                                    <StatusPill status={doc.status} />
-                                                    {doc.status === "pending" && (
-                                                        <button
-                                                            type="button"
-                                                            className={styles.signButton}
-                                                            onClick={() => {
-                                                                setSigningDoc({ caregiverId: caregiver.id, docName: doc.name });
-                                                                setSignatureValue("");
-                                                                setSignError(null);
-                                                            }}
-                                                        >
-                                                            Sign
-                                                        </button>
-                                                    )}
-                                                </span>
-                                            </div>
-
-                                            {isSigningThis && (
-                                                <div className={styles.signForm}>
-                                                    <SignatureField
-                                                        id={`sign-${caregiver.id}-${doc.name}`}
-                                                        label={`Signature for ${doc.name}`}
-                                                        value={signatureValue}
-                                                        onChange={setSignatureValue}
-                                                    />
-                                                    {signError && <p className={styles.errorNote}>{signError}</p>}
-                                                    <div className={styles.signActions}>
-                                                        <button
-                                                            type="button"
-                                                            className={styles.captureButton}
-                                                            onClick={() => handleSignDocument(caregiver.id, doc.name)}
-                                                            disabled={signing}
-                                                        >
-                                                            {signing ? "Capturing..." : "Capture signature"}
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            className={styles.cancelButton}
-                                                            onClick={() => setSigningDoc(null)}
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        </li>
-                    ))}
+                        return (
+                            <li key={caregiver.id}>
+                                <Link to={`/caregivers/${caregiver.id}`} className={styles.cardLink}>
+                                    <article className={styles.caregiverCard}>
+                                        <div className={styles.cardHeader}>
+                                            <h4 className={styles.caregiverName}>{caregiver.name}</h4>
+                                            <span className={cleared ? styles.clearedBadge : styles.notClearedBadge}>
+                                                {cleared ? "Cleared to work" : "Not cleared to work"}
+                                            </span>
+                                        </div>
+                                        <p className={styles.caregiverPhone}>{caregiver.phone}</p>
+                                        <p className={styles.paperwork}>{paperworkLine(caregiver, now)}</p>
+                                    </article>
+                                </Link>
+                            </li>
+                        );
+                    })}
                 </ul>
             )}
         </section>
