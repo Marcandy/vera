@@ -2,9 +2,9 @@ import { Link, useSearchParams } from "react-router";
 import VisitCard from "../components/VisitCard";
 import LoadError from "../components/LoadError";
 import styles from "./Visits.module.css";
-import { getVisits } from "../services/visitService";
+import { getVisits, getVisitCounts } from "../services/visitService";
 import { VISIT_STATUS, VISIT_STATUS_LIST, parseVisitStatus } from "../utils/status";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNow } from "../hooks/useNow";
 import { attentionFor } from "../utils/attention";
 
@@ -39,17 +39,27 @@ const byAttention = (a, b) => {
 
 const SORTS = { attention: byAttention, date: byDate };
 
+// Long enough that a typed word is one request rather than five, short enough
+// that it still feels like the list is keeping up.
+const SEARCH_DEBOUNCE_MS = 250;
+
 const Visits = () => {
-    const [visitList, setVisitList] = useState(null);
+    // The result carries the query that produced it, not just the rows. That
+    // is what lets "are we showing something out of date" be DERIVED rather
+    // than tracked in a second flag: a flag would be a separate claim about
+    // the list that can disagree with the list, and keeping it in step meant
+    // setting state inside the effect body on every keystroke.
+    const [result, setResult] = useState(null);
+    const [counts, setCounts] = useState(null);
     const [loadError, setLoadError] = useState(null);
     const [reloadKey, setReloadKey] = useState(0);
 
     // Ticks so a visit crossing its threshold flags itself without a reload.
     const now = useNow();
 
-    // Filter and sort live in the URL, not in useState. This is VIEW state:
-    // what am I looking at. That makes it shareable, bookmarkable, and it
-    // restores on the back button for free. Note the opposite call on
+    // Filter, search and sort live in the URL, not in useState. This is VIEW
+    // state: what am I looking at. That makes it shareable, bookmarkable, and
+    // it restores on the back button for free. Note the opposite call on
     // MyVisits, where the caregiver id must NEVER come from the URL: that is
     // identity, and identity a user can type is an authorization hole. Same
     // app, opposite answers, for different reasons.
@@ -59,30 +69,69 @@ const Visits = () => {
     // rather than rendering a blank list with nothing to explain it.
     const activeStatus = parseVisitStatus(searchParams.get("status"));
     const activeSort = SORTS[searchParams.get("sort")] ? searchParams.get("sort") : "attention";
+    const query = searchParams.get("q") ?? "";
 
+    // The counts describe the whole collection, so this runs once and NOT when
+    // the filter changes. Deriving them from the filtered list stopped being
+    // possible when filtering moved to the service: every chip would report
+    // the filtered total or zero.
     useEffect(() => {
         let stale = false;
-        async function fetchData() {
+        async function fetchCounts() {
             try {
-                const visitListData = await getVisits();
+                const result = await getVisitCounts();
+                if (!stale) setCounts(result);
+            } catch {
+                // The list's own error is the one worth interrupting for. A
+                // missing count renders as a chip without a number, which is
+                // survivable; blanking the page over it is not.
+            }
+        }
+        fetchCounts();
+        return () => { stale = true; };
+    }, [reloadKey]);
+
+    // Only the search box is typed into, so only the search box is worth
+    // waiting on. Debouncing the whole effect made clicking a status chip sit
+    // through a pause for keystrokes that were never coming.
+    const lastQuery = useRef(query);
+
+    // The list is a separate request because it answers a separate question,
+    // and it re-runs whenever the query changes.
+    useEffect(() => {
+        let stale = false;
+
+        const queryChanged = lastQuery.current !== query;
+        lastQuery.current = query;
+
+        // Debounced, so typing a name is one request rather than one per
+        // keystroke. The cleanup clears the timer, so a keystroke inside the
+        // window cancels the request before it is made; the stale flag then
+        // handles the request that IS in flight when the query changes again.
+        // Two mechanisms because they solve two different problems: one stops
+        // the call happening, the other stops a slow answer to an old question
+        // overwriting the answer to the current one.
+        const timer = setTimeout(async () => {
+            try {
+                const visits = await getVisits({ status: activeStatus, q: query });
                 if (!stale) {
-                    setVisitList(visitListData);
+                    setResult({ status: activeStatus, query, visits });
                     setLoadError(null);
                 }
             } catch (err) {
                 if (!stale) setLoadError(err.message);
             }
-        }
-        fetchData();
-        return () => { stale = true; };
-    }, [reloadKey]);
+        }, queryChanged ? SEARCH_DEBOUNCE_MS : 0);
+
+        return () => { stale = true; clearTimeout(timer); };
+    }, [activeStatus, query, reloadKey]);
 
     // Replace rather than push: filtering is not a place you navigated to,
     // so twelve chip clicks should not mean twelve presses of the back button
     // to leave the page.
     const setParam = (key, value) => {
         const next = new URLSearchParams(searchParams);
-        if (value === null) next.delete(key);
+        if (value === null || value === "") next.delete(key);
         else next.set(key, value);
         setSearchParams(next, { replace: true });
     };
@@ -94,18 +143,30 @@ const Visits = () => {
         />
     );
 
-    if (visitList === null) return <p>Loading...</p>
+    if (result === null) return <p>Loading...</p>
 
-    // Filtering runs over the list already in hand. For ten rows a refetch on
-    // every chip click would be slower and no more correct; with a real
-    // backend and pagination this becomes a query parameter instead.
-    const filtered = activeStatus
-        ? visitList.filter((visit) => visit.status === activeStatus)
-        : visitList;
+    // The rows on screen answer the query they were fetched for. If the URL
+    // has moved on since, they are last question's answer and the page says so
+    // rather than looking merely slow.
+    const isRefreshing = result.query !== query || result.status !== activeStatus;
 
-    // Sort a COPY. getVisits() hands back the live seed array, so sorting in
-    // place would reorder the data source every component reads from.
-    const ordered = [...filtered].sort(SORTS[activeSort]);
+    // Sort a COPY. The service hands back its own array now, but sorting a
+    // result in place is still the habit that reorders a shared cache the day
+    // one exists.
+    const ordered = [...result.visits].sort(SORTS[activeSort]);
+
+    // Two different empty results needing two different explanations: an agency
+    // with no visits at all, and a filter that happens to match none. Decided
+    // from the filter itself rather than from the counts, which arrive in their
+    // own request and may not have landed yet.
+    const isFiltered = activeStatus !== null || query !== "";
+
+    const clearFilters = () => {
+        const next = new URLSearchParams(searchParams);
+        next.delete("status");
+        next.delete("q");
+        setSearchParams(next, { replace: true });
+    };
 
     return (
         <section className={styles.visits}>
@@ -124,6 +185,26 @@ const Visits = () => {
                 </label>
             </div>
 
+            <div className={styles.searchRow}>
+                <label className={styles.searchLabel} htmlFor="visit-search">
+                    Search by name
+                </label>
+                <input
+                    id="visit-search"
+                    type="search"
+                    className={styles.searchInput}
+                    placeholder="Patient or caregiver"
+                    value={query}
+                    onChange={(e) => setParam("q", e.target.value)}
+                />
+                {/* The list keeps the previous results while a new query is in
+                    flight rather than flashing Loading on every keystroke, so
+                    this is what says the screen is not simply stale. */}
+                <span className={styles.searchStatus} aria-live="polite">
+                    {isRefreshing ? "Searching..." : ""}
+                </span>
+            </div>
+
             <div className={styles.filterBar} role="group" aria-label="Filter by status">
                 <button
                     type="button"
@@ -131,37 +212,38 @@ const Visits = () => {
                     aria-pressed={activeStatus === null}
                     onClick={() => setParam("status", null)}
                 >
-                    All ({visitList.length})
+                    All{counts && ` (${counts.total})`}
                 </button>
-                {VISIT_STATUS_LIST.map((status) => {
-                    const count = visitList.filter((visit) => visit.status === status).length;
-                    return (
-                        <button
-                            key={status}
-                            type="button"
-                            className={activeStatus === status ? `${styles.chip} ${styles.chipActive}` : styles.chip}
-                            aria-pressed={activeStatus === status}
-                            onClick={() => setParam("status", status)}
-                        >
-                            {status} ({count})
-                        </button>
-                    );
-                })}
+                {VISIT_STATUS_LIST.map((status) => (
+                    <button
+                        key={status}
+                        type="button"
+                        className={activeStatus === status ? `${styles.chip} ${styles.chipActive}` : styles.chip}
+                        aria-pressed={activeStatus === status}
+                        onClick={() => setParam("status", status)}
+                    >
+                        {status}{counts && ` (${counts.byStatus[status] ?? 0})`}
+                    </button>
+                ))}
             </div>
 
-            {visitList.length === 0 ? (
-                <p className={styles.emptyState}>
-                    No visits yet. Scheduled visits will appear here.
-                </p>
-            ) : ordered.length === 0 ? (
-                // A filter matching nothing is a different fact from an empty
-                // agency, and it needs its own way out.
-                <p className={styles.emptyState}>
-                    No visits are {activeStatus}.{" "}
-                    <button type="button" className={styles.linkButton} onClick={() => setParam("status", null)}>
-                        Show all visits
-                    </button>
-                </p>
+            {ordered.length === 0 ? (
+                isFiltered ? (
+                    <p className={styles.emptyState}>
+                        {query && activeStatus
+                            ? `No ${activeStatus} visits match "${query}".`
+                            : query
+                                ? `No visits match "${query}".`
+                                : `No visits are ${activeStatus}.`}{" "}
+                        <button type="button" className={styles.linkButton} onClick={clearFilters}>
+                            Clear filters
+                        </button>
+                    </p>
+                ) : (
+                    <p className={styles.emptyState}>
+                        No visits yet. Scheduled visits will appear here.
+                    </p>
+                )
             ) : (
                 <ul className={styles.visitList}>
                     {ordered.map((visit) => (
