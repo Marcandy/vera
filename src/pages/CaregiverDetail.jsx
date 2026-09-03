@@ -3,9 +3,9 @@ import { useParams, Link } from "react-router";
 import StatusPill from "../components/StatusPill";
 import SignatureField from "../components/SignatureField";
 import LoadError from "../components/LoadError";
-import { getCaregiverById, signDocument, uploadDocument } from "../services/caregiverService";
+import { acceptDocumentSubmission, getCaregiverById, signDocument, uploadDocument } from "../services/caregiverService";
 import { getVisitsByCaregiver } from "../services/visitService";
-import { documentStatus, isClearedToWork, daysUntil, RENEWAL_WINDOW_DAYS } from "../utils/documents";
+import { documentStatus, isClearedToWork, daysUntil, hasPendingSubmission, RENEWAL_WINDOW_DAYS } from "../utils/documents";
 import { DOCUMENT_STATUS } from "../utils/status";
 import { formatDate, formatDateTime, formatFileSize } from "../utils/format";
 import { useNow } from "../hooks/useNow";
@@ -94,6 +94,23 @@ const CaregiverDetail = () => {
         try {
             const updated = await signDocument(caregiverId, documentId, signatureValue);
             setCaregiver(updated);
+            closeForm();
+        } catch (err) {
+            setFormError(err.message);
+        } finally {
+            setSubmitting(false);
+        }
+    }
+
+    // Accepting what a caregiver sent in. This is the step that makes a
+    // submitted renewal the credential of record, and it is deliberately the
+    // office's to take: the agency is what has to produce a valid card at a
+    // survey, so somebody here has to have looked at it.
+    async function handleAccept(documentId) {
+        setFormError(null);
+        setSubmitting(true);
+        try {
+            setCaregiver(await acceptDocumentSubmission(caregiverId, documentId));
             closeForm();
         } catch (err) {
             setFormError(err.message);
@@ -236,6 +253,29 @@ const CaregiverDetail = () => {
                                         <span className={styles.fileMeta}> · {formatFileSize(document.fileSize)}</span>
                                     )}
                                 </p>
+                            )}
+
+                            {/* A renewal the caregiver sent in. It changes
+                                nothing about the record until it is accepted,
+                                which is what the wording has to convey. */}
+                            {hasPendingSubmission(document) && (
+                                <div className={styles.submissionCard}>
+                                    <p className={styles.submissionText}>
+                                        <strong>{caregiver.name} sent in a renewal</strong> on{" "}
+                                        {formatDate(document.submission.submittedAt)}:{" "}
+                                        {document.submission.fileName}
+                                        {document.submission.expiresAt &&
+                                            `, expiring ${formatDate(document.submission.expiresAt)}`}.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        className={styles.primaryButton}
+                                        onClick={() => handleAccept(document.id)}
+                                        disabled={submitting}
+                                    >
+                                        {submitting ? "Accepting..." : "Accept renewal"}
+                                    </button>
+                                </div>
                             )}
 
                             <div className={styles.rowActions}>

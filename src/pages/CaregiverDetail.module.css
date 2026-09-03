@@ -350,3 +350,24 @@
         margin-left: 0;
     }
 }
+
+/* a renewal waiting on the office. Reads as an action to take, not as a
+   status the document already has */
+.submissionCard {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border: 1px solid #c5d9ec;
+    border-radius: 8px;
+    background-color: #eef4fb;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.submissionText {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    word-break: break-word;
+}
