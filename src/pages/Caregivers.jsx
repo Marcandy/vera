@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router";
 import styles from "./Caregivers.module.css";
 import { addCaregiver, getCaregivers } from "../services/caregiverService";
 import { documentSummary, isClearedToWork } from "../utils/documents";
 import { DOCUMENT_STATUS } from "../utils/status";
 import { useNow } from "../hooks/useNow";
+import { useAsyncData } from "../hooks/useAsyncData";
 import LoadError from "../components/LoadError";
 
 // One line telling Denise what is wrong with this caregiver's paperwork,
@@ -25,9 +26,12 @@ const paperworkLine = (caregiver, now) => {
 };
 
 const Caregivers = () => {
-    const [caregiverList, setCaregiverList] = useState(null);
-    const [loadError, setLoadError] = useState(null);
-    const [reloadKey, setReloadKey] = useState(0);
+    // The roster read goes through the hook. The add-caregiver form keeps its
+    // own state because a form submission is not a page load: it has a pending
+    // flag, an inline error and a result that is merged into the list rather
+    // than refetched.
+    const { data: caregiverList, error: loadError, loading, reload, setData } = useAsyncData(
+        (signal) => getCaregivers({ signal }), []);
 
     const [error, setError] = useState(null);
     const [adding, setAdding] = useState(false);
@@ -38,30 +42,16 @@ const Caregivers = () => {
     // page ticks for the same reason the dashboard does.
     const now = useNow();
 
-    useEffect(()=> {
-        let stale = false;
-        async function fetchGiverData() {
-            try {
-                const caregiverData = await getCaregivers();
-                if(!stale) {
-                    setCaregiverList(caregiverData);
-                    setLoadError(null);
-                }
-            } catch (err) {
-                if (!stale) setLoadError(err.message);
-            }
-        }
-        fetchGiverData();
-        return () => { stale = true }; // prevent old data saved updated in state when component is unmounted
-    }, [reloadKey])
-
     async function handleAddCaregiver(e) {
         e.preventDefault();
         setError(null);
         setAdding(true);
         try {
-            const added = await addCaregiver({ name: firstLast, phone});
-            setCaregiverList([...caregiverList, added]);
+            const newCaregiver = await addCaregiver({ name: firstLast, phone});
+            // Appended to the list we already hold rather than kept beside it.
+            // A second array layered over the fetched one is two sources for one
+            // list, and they disagree the moment anything refetches.
+            setData((roster) => [...roster, newCaregiver]);
             setFirstLast("");
             setPhone("");
         } catch(err) {
@@ -73,12 +63,12 @@ const Caregivers = () => {
 
     if (loadError) return (
         <LoadError
-            message={`The caregiver roster could not load. ${loadError}`}
-            onRetry={() => setReloadKey((key) => key + 1)}
+            message={`The caregiver roster could not load. ${loadError.message}`}
+            onRetry={reload}
         />
     );
 
-    if (caregiverList === null) return (<p>Loading...</p>);
+    if (loading) return (<p>Loading...</p>);
 
     return (
         <section className={styles.caregivers}>

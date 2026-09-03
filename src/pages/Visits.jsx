@@ -4,8 +4,10 @@ import LoadError from "../components/LoadError";
 import styles from "./Visits.module.css";
 import { getVisits, getVisitCounts } from "../services/visitService";
 import { VISIT_STATUS, VISIT_STATUS_LIST, parseVisitStatus } from "../utils/status";
-import { useEffect, useRef, useState } from "react";
+
 import { useNow } from "../hooks/useNow";
+import { useAsyncData } from "../hooks/useAsyncData";
+import { useDebounced } from "../hooks/useDebounced";
 import { attentionFor } from "../utils/attention";
 
 // Denise's attention order, lowest rank first. This is a property of THIS
@@ -44,16 +46,6 @@ const SORTS = { attention: byAttention, date: byDate };
 const SEARCH_DEBOUNCE_MS = 250;
 
 const Visits = () => {
-    // The result carries the query that produced it, not just the rows. That
-    // is what lets "are we showing something out of date" be DERIVED rather
-    // than tracked in a second flag: a flag would be a separate claim about
-    // the list that can disagree with the list, and keeping it in step meant
-    // setting state inside the effect body on every keystroke.
-    const [result, setResult] = useState(null);
-    const [counts, setCounts] = useState(null);
-    const [loadError, setLoadError] = useState(null);
-    const [reloadKey, setReloadKey] = useState(0);
-
     // Ticks so a visit crossing its threshold flags itself without a reload.
     const now = useNow();
 
@@ -71,60 +63,24 @@ const Visits = () => {
     const activeSort = SORTS[searchParams.get("sort")] ? searchParams.get("sort") : "attention";
     const query = searchParams.get("q") ?? "";
 
-    // The counts describe the whole collection, so this runs once and NOT when
-    // the filter changes. Deriving them from the filtered list stopped being
-    // possible when filtering moved to the service: every chip would report
-    // the filtered total or zero.
-    useEffect(() => {
-        let stale = false;
-        async function fetchCounts() {
-            try {
-                const result = await getVisitCounts();
-                if (!stale) setCounts(result);
-            } catch {
-                // The list's own error is the one worth interrupting for. A
-                // missing count renders as a chip without a number, which is
-                // survivable; blanking the page over it is not.
-            }
-        }
-        fetchCounts();
-        return () => { stale = true; };
-    }, [reloadKey]);
+    // Only the search box is typed into, so only the search box waits. A status
+    // chip is a click, not a keystroke, so it stays immediate: that falls out of
+    // debouncing the VALUE rather than the request.
+    const debouncedQuery = useDebounced(query, SEARCH_DEBOUNCE_MS);
 
-    // Only the search box is typed into, so only the search box is worth
-    // waiting on. Debouncing the whole effect made clicking a status chip sit
-    // through a pause for keystrokes that were never coming.
-    const lastQuery = useRef(query);
+    // The counts describe the whole collection, so they do NOT re-run when the
+    // filter changes. Deriving them from the filtered list stopped being
+    // possible when filtering moved to the service: every chip would report the
+    // filtered total or zero.
+    const { data: counts, reload: reloadCounts } = useAsyncData(
+        (signal) => getVisitCounts({ signal }), []);
 
-    // The list is a separate request because it answers a separate question,
-    // and it re-runs whenever the query changes.
-    useEffect(() => {
-        let stale = false;
+    // The list is a separate request because it answers a separate question.
+    const { data: visitList, error: loadError, loading, stale, reload: reloadList } = useAsyncData(
+        (signal) => getVisits({ status: activeStatus, q: debouncedQuery }, { signal }),
+        [activeStatus, debouncedQuery]);
 
-        const queryChanged = lastQuery.current !== query;
-        lastQuery.current = query;
-
-        // Debounced, so typing a name is one request rather than one per
-        // keystroke. The cleanup clears the timer, so a keystroke inside the
-        // window cancels the request before it is made; the stale flag then
-        // handles the request that IS in flight when the query changes again.
-        // Two mechanisms because they solve two different problems: one stops
-        // the call happening, the other stops a slow answer to an old question
-        // overwriting the answer to the current one.
-        const timer = setTimeout(async () => {
-            try {
-                const visits = await getVisits({ status: activeStatus, q: query });
-                if (!stale) {
-                    setResult({ status: activeStatus, query, visits });
-                    setLoadError(null);
-                }
-            } catch (err) {
-                if (!stale) setLoadError(err.message);
-            }
-        }, queryChanged ? SEARCH_DEBOUNCE_MS : 0);
-
-        return () => { stale = true; clearTimeout(timer); };
-    }, [activeStatus, query, reloadKey]);
+    const reload = () => { reloadCounts(); reloadList(); };
 
     // Replace rather than push: filtering is not a place you navigated to,
     // so twelve chip clicks should not mean twelve presses of the back button
@@ -138,22 +94,21 @@ const Visits = () => {
 
     if (loadError) return (
         <LoadError
-            message={`The visit list could not load. ${loadError}`}
-            onRetry={() => setReloadKey((key) => key + 1)}
+            message={`The visit list could not load. ${loadError.message}`}
+            onRetry={reload}
         />
     );
 
-    if (result === null) return <p>Loading...</p>
+    if (loading) return <p>Loading...</p>
 
-    // The rows on screen answer the query they were fetched for. If the URL
-    // has moved on since, they are last question's answer and the page says so
-    // rather than looking merely slow.
-    const isRefreshing = result.query !== query || result.status !== activeStatus;
+    // Out of date for either reason: the typed query has not settled yet, or it
+    // has and the answer is still on its way. Both mean the rows on screen
+    // answer an older question, and both are derived rather than flagged.
+    const isRefreshing = stale || query !== debouncedQuery;
 
-    // Sort a COPY. The service hands back its own array now, but sorting a
-    // result in place is still the habit that reorders a shared cache the day
-    // one exists.
-    const ordered = [...result.visits].sort(SORTS[activeSort]);
+    // Sort a COPY. The service hands back its own array, but sorting a result in
+    // place is still the habit that reorders a shared cache the day one exists.
+    const ordered = [...visitList].sort(SORTS[activeSort]);
 
     // Two different empty results needing two different explanations: an agency
     // with no visits at all, and a filter that happens to match none. Decided

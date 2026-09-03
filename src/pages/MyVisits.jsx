@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import VisitCard from "../components/VisitCard";
 import { getVisitsByCaregiver } from "../services/visitService";
 import { useSession } from "../context/sessionContext";
 import { useNow } from "../hooks/useNow";
+import { useAsyncData } from "../hooks/useAsyncData";
 import { attentionFor, visitsNeedingAttention } from "../utils/attention";
 import LoadError from "../components/LoadError";
 import styles from "./MyVisits.module.css";
@@ -15,9 +15,6 @@ const byAppointment = (a, b) => a.appointmentTime.localeCompare(b.appointmentTim
 const MyVisits = () => {
     const { user, loading } = useSession();
 
-    const [visitList, setVisitList] = useState(null);
-    const [loadError, setLoadError] = useState(null);
-    const [reloadKey, setReloadKey] = useState(0);
 
     // The caregiver gets the same derivation as the office. Telling Denise a
     // punch was missed only reports the problem; telling Marcus while he can
@@ -30,24 +27,13 @@ const MyVisits = () => {
     // controller trusting a client-supplied actor instead of the principal.
     const caregiverId = user?.caregiverId ?? null;
 
-    useEffect(() => {
-        if (caregiverId === null) return;
-
-        let stale = false;
-        async function fetchVisits() {
-            try {
-                const visits = await getVisitsByCaregiver(caregiverId);
-                if (!stale) {
-                    setVisitList(visits);
-                    setLoadError(null);
-                }
-            } catch (err) {
-                if (!stale) setLoadError(err.message);
-            }
-        }
-        fetchVisits();
-        return () => { stale = true; };
-    }, [caregiverId, reloadKey]);
+    // Skipped rather than guarded inside the effect: an admin has no caregiver
+    // record, and asking for "the visits of nobody" is not a request worth
+    // sending. The hook stays in loading until there is something to ask.
+    const { data: visitList, error: loadError, loading: visitsLoading, reload } = useAsyncData(
+        (signal) => getVisitsByCaregiver(caregiverId, { signal }),
+        [caregiverId],
+        { skip: caregiverId === null });
 
     // While the session is still unknown, user is null but nobody is signed
     // out yet. Answering here would flash "nobody is signed in" at a
@@ -89,12 +75,12 @@ const MyVisits = () => {
 
     if (loadError) return (
         <LoadError
-            message={`Your visits could not load. ${loadError}`}
-            onRetry={() => setReloadKey((key) => key + 1)}
+            message={`Your visits could not load. ${loadError.message}`}
+            onRetry={reload}
         />
     );
 
-    if (visitList === null) return <p>Loading...</p>
+    if (visitsLoading) return <p>Loading...</p>
 
     const needsAttention = visitsNeedingAttention(visitList, now);
 

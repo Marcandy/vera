@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, Link } from "react-router";
 import StatusPill from "../components/StatusPill";
 import { checkInVisit, checkOutVisit, getVisitById, supplyEvidence } from "../services/visitService";
 import styles from "./CaregiverVisit.module.css";
 import SignatureField from "../components/SignatureField";
 import LoadError from "../components/LoadError";
+import { useAsyncData } from "../hooks/useAsyncData";
 import { formatDateTime, formatTime, formatLocation } from "../utils/format";
 import { VISIT_STATUS } from "../utils/status";
 import { getCurrentLocation } from "../services/locationService";
@@ -21,10 +22,12 @@ const EVIDENCE_LABELS = [
 const CaregiverVisit = () => {
     const { visitId } = useParams();
 
-    const [visit, setVisit] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [loadError, setLoadError] = useState(null);
-    const [reloadKey, setReloadKey] = useState(0);
+    // setData is how each mutation writes its result back. Check-in, check-out
+    // and supplying evidence all return the updated visit, so there is nothing
+    // to refetch: asking again would spend a round trip to be told what we were
+    // just handed.
+    const { data: visit, error: loadError, loading, reload, setData: setVisit } = useAsyncData(
+        (signal) => getVisitById(Number(visitId), { signal }), [visitId]);
 
     const [error, setError] = useState(null);
     const [checkingIn, setCheckingIn] = useState(false);
@@ -34,25 +37,6 @@ const CaregiverVisit = () => {
     const [signature, setSignature] = useState("");
     const [confirmNoSignature, setConfirmNoSignature] = useState(false);
 
-
-    useEffect(() => {
-        let stale = false;
-        async function fetchData() {
-            try {
-                const result = await getVisitById(Number(visitId));
-                if (!stale) {
-                    setVisit(result ?? null);
-                    setLoadError(null);
-                }
-            } catch (err) {
-                if (!stale) setLoadError(err.message);
-            } finally {
-                if (!stale) setLoading(false);
-            }
-        }
-        fetchData();
-        return () => { stale = true; };
-    }, [visitId, reloadKey]);
 
     async function handleCheckIn () {
         setError(null);
@@ -113,8 +97,8 @@ const CaregiverVisit = () => {
     // "this visit is not yours" and "we could not reach the office".
     if (loadError) return (
         <LoadError
-            message={`This visit could not load. ${loadError}`}
-            onRetry={() => { setLoading(true); setReloadKey((key) => key + 1); }}
+            message={`This visit could not load. ${loadError.message}`}
+            onRetry={reload}
         />
     );
 

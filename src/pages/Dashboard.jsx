@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { getVisits } from "../services/visitService";
 import { getCaregivers } from "../services/caregiverService";
@@ -9,6 +8,7 @@ import { visitsNeedingAttention } from "../utils/attention";
 import { credentialsNeedingAttention, isClearedToWork, daysUntil } from "../utils/documents";
 import { DOCUMENT_STATUS } from "../utils/status";
 import { useNow } from "../hooks/useNow";
+import { useAsyncData } from "../hooks/useAsyncData";
 import AttentionFlag from "../components/AttentionFlag";
 import StatusPill from "../components/StatusPill";
 import LoadError from "../components/LoadError";
@@ -48,55 +48,28 @@ const PIPELINE = [
 ];
 
 const Dashboard = () => {
-    const [visitList, setVisitList] = useState(null);
-    const [caregiverList, setCaregiverList] = useState([]);
-    const [loadError, setLoadError] = useState(null);
-    // Bumping this re-runs the effect, which is what Try again needs: the
-    // request is the effect's job, so retrying means asking for the effect
-    // again rather than calling the service from a handler.
-    const [reloadKey, setReloadKey] = useState(0);
+    // Two independent facts, fetched together rather than in sequence.
+    // Promise.all fails the pair if either fails, which keeps one error state
+    // for one screen; the cost is that a failed caregiver read takes the visit
+    // panels down with it.
+    const { data, error: loadError, loading, reload } = useAsyncData(
+        (signal) => Promise.all([getVisits({}, { signal }), getCaregivers({ signal })]), []);
 
     // The counts below answer what is in the pipeline. This answers what is
     // going wrong right now, which the pipeline cannot see: a visit sitting
     // scheduled past its appointment still counts as scheduled.
     const now = useNow();
 
-    useEffect(() => {
-        let stale = false;
-        async function fetchData() {
-            try {
-                // Two independent facts, so both requests go out together
-                // rather than spending two round trips in sequence. Promise.all
-                // fails the pair if either fails, which keeps one error state
-                // for one screen; the cost is that a caregiver read failing
-                // takes the visit panels down with it.
-                const [visits, caregivers] = await Promise.all([
-                    getVisits(),
-                    getCaregivers(),
-                ]);
-                if (!stale) {
-                    setVisitList(visits);
-                    setCaregiverList(caregivers);
-                    setLoadError(null);
-                }
-            } catch (err) {
-                // Without this the promise rejects into nothing and the page
-                // sits on "Loading..." for as long as anyone leaves it open.
-                if (!stale) setLoadError(err.message);
-            }
-        }
-        fetchData();
-        return () => { stale = true; };
-    }, [reloadKey]);
-
     if (loadError) return (
         <LoadError
-            message={`The dashboard could not load. ${loadError}`}
-            onRetry={() => setReloadKey((key) => key + 1)}
+            message={`The dashboard could not load. ${loadError.message}`}
+            onRetry={reload}
         />
     );
 
-    if (visitList === null) return <p>Loading...</p>
+    if (loading) return <p>Loading...</p>
+
+    const [visitList, caregiverList] = data;
 
     // Derived at render from the records themselves, so a count can never
     // disagree with the list it summarizes.
