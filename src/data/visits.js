@@ -16,6 +16,9 @@
 // null = never captured, which is what every seed visit is. A real capture
 // stores the whole locationService result, including the reason when the
 // device could not give a fix, so review can tell "denied" from "not asked".
+// serviceType is WHAT care was delivered, the one EVV data element the record
+// used to be missing. It is not the assessment: the assessment is a caregiver's
+// note about how the visit went, which nothing can bill or audit against.
 // estimatedCost is a NUMBER (dollars); format as currency at render.
 // MVP collapse: stored flat; later derived from hours x payer rate.
 // claimId and submittedAt exist only once a claim is submitted (billed).
@@ -27,6 +30,7 @@
 // exactly one is late to check in and exactly one has run long, which is what
 // makes the attention flags read as signal. See src/data/demoDay.js.
 import { VISIT_STATUS } from "../utils/status";
+import { SERVICE_TYPE } from "../utils/serviceType";
 import { at, minutesAgo, minutesAhead } from "./demoDay";
 
 export const visits = [
@@ -38,6 +42,7 @@ export const visits = [
         caregiverName: "Marcus Reed",
         appointmentTime: at(-1, "14:00"),
         status: VISIT_STATUS.NEEDS_REVIEW,
+        serviceType: SERVICE_TYPE.PERSONAL_CARE,
         estimatedCost: 34,
         checkInTime: at(-1, "14:02"),
         checkInLocation: null,
@@ -54,6 +59,7 @@ export const visits = [
         caregiverName: "Dana Alvarez",
         appointmentTime: at(-1, "16:30"),
         status: VISIT_STATUS.NEEDS_REVIEW,
+        serviceType: SERVICE_TYPE.HOMEMAKER,
         estimatedCost: 51,
         checkInTime: at(-1, "16:33"),
         checkInLocation: null,
@@ -70,6 +76,7 @@ export const visits = [
         caregiverName: "Marcus Reed",
         appointmentTime: at(-1, "09:00"),
         status: VISIT_STATUS.READY_TO_BILL,
+        serviceType: SERVICE_TYPE.PERSONAL_CARE,
         estimatedCost: 52.5,
         checkInTime: at(-1, "08:58"),
         checkInLocation: null,
@@ -86,6 +93,7 @@ export const visits = [
         caregiverName: "Keisha Thompson",
         appointmentTime: at(-1, "11:30"),
         status: VISIT_STATUS.READY_TO_BILL,
+        serviceType: SERVICE_TYPE.PERSONAL_CARE,
         estimatedCost: 56,
         checkInTime: at(-1, "11:29"),
         checkInLocation: null,
@@ -102,6 +110,7 @@ export const visits = [
         caregiverName: "Keisha Thompson",
         appointmentTime: at(-1, "10:00"),
         status: VISIT_STATUS.READY_TO_BILL,
+        serviceType: SERVICE_TYPE.PERSONAL_CARE,
         estimatedCost: 63,
         checkInTime: at(-1, "09:58"),
         checkInLocation: null,
@@ -118,6 +127,7 @@ export const visits = [
         caregiverName: "Dana Alvarez",
         appointmentTime: minutesAgo(50),
         status: VISIT_STATUS.IN_PROGRESS,
+        serviceType: SERVICE_TYPE.RESPITE_CARE,
         estimatedCost: 42,
         checkInTime: minutesAgo(45),
         checkInLocation: null,
@@ -134,6 +144,7 @@ export const visits = [
         caregiverName: "Dana Alvarez",
         appointmentTime: minutesAgo(195),
         status: VISIT_STATUS.IN_PROGRESS,
+        serviceType: SERVICE_TYPE.COMPANION_CARE,
         estimatedCost: 47,
         checkInTime: minutesAgo(190),
         checkInLocation: null,
@@ -150,6 +161,7 @@ export const visits = [
         caregiverName: "Keisha Thompson",
         appointmentTime: minutesAgo(40),
         status: VISIT_STATUS.SCHEDULED,
+        serviceType: SERVICE_TYPE.HOMEMAKER,
         estimatedCost: 38.5,
         checkInTime: null,
         checkInLocation: null,
@@ -166,6 +178,7 @@ export const visits = [
         caregiverName: "Marcus Reed",
         appointmentTime: minutesAhead(120),
         status: VISIT_STATUS.SCHEDULED,
+        serviceType: SERVICE_TYPE.PERSONAL_CARE,
         estimatedCost: 40,
         checkInTime: null,
         checkInLocation: null,
@@ -182,6 +195,7 @@ export const visits = [
         caregiverName: "Marcus Reed",
         appointmentTime: at(-1, "08:00"),
         status: VISIT_STATUS.BILLED,
+        serviceType: SERVICE_TYPE.PERSONAL_CARE,
         estimatedCost: 45.5,
         checkInTime: at(-1, "07:57"),
         checkInLocation: null,
@@ -200,6 +214,7 @@ export const visits = [
         caregiverName: "Marcus Reed",
         appointmentTime: at(-15, "14:00"),
         status: VISIT_STATUS.BILLED,
+        serviceType: SERVICE_TYPE.PERSONAL_CARE,
         estimatedCost: 34,
         checkInTime: at(-15, "13:58"),
         checkInLocation: null,
@@ -218,6 +233,7 @@ export const visits = [
         caregiverName: "Keisha Thompson",
         appointmentTime: at(-8, "14:00"),
         status: VISIT_STATUS.BILLED,
+        serviceType: SERVICE_TYPE.PERSONAL_CARE,
         estimatedCost: 34,
         checkInTime: at(-8, "14:05"),
         checkInLocation: null,
@@ -236,6 +252,7 @@ export const visits = [
         caregiverName: "Marcus Reed",
         appointmentTime: at(-13, "09:00"),
         status: VISIT_STATUS.BILLED,
+        serviceType: SERVICE_TYPE.PERSONAL_CARE,
         estimatedCost: 52.5,
         checkInTime: at(-13, "09:01"),
         checkInLocation: null,
@@ -254,6 +271,7 @@ export const visits = [
         caregiverName: "Keisha Thompson",
         appointmentTime: at(-9, "11:30"),
         status: VISIT_STATUS.BILLED,
+        serviceType: SERVICE_TYPE.PERSONAL_CARE,
         estimatedCost: 56,
         checkInTime: at(-9, "11:31"),
         checkInLocation: null,
