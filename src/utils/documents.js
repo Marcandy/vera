@@ -72,6 +72,38 @@ export const documentSummary = (caregiver, now) => {
     return summary;
 };
 
+// The two statuses that are about TIME running out rather than about a
+// document never having arrived. Pending is deliberately not here: a new hire
+// with outstanding paperwork is a known situation the roster already shows,
+// while a credential quietly lapsing is the one nobody notices until an audit
+// does. Same distinction the visit flags make, where a scheduled visit is not
+// an attention item but a scheduled visit whose time has passed is.
+const CREDENTIAL_ATTENTION = [DOCUMENT_STATUS.EXPIRED, DOCUMENT_STATUS.EXPIRING];
+
+// Ordered by expiry date, oldest first, and that single comparator is the
+// whole policy. Expired documents sort ahead of expiring ones for free because
+// their dates are already in the past, and within each group the one that has
+// been wrong longest, or is about to be wrong soonest, comes first. A rank
+// table would have said the same thing while being able to disagree with the
+// dates.
+const byExpiry = (a, b) => a.document.expiresAt.localeCompare(b.document.expiresAt);
+
+// Flattened across the roster, because this answers an agency-wide question:
+// what credentials need chasing, not which caregiver to look at. Each entry
+// carries its caregiver so the row can name and link to them.
+//
+// Every document here has an expiresAt: a document with none derives as signed
+// or pending and cannot reach either attention status, which is what lets
+// byExpiry compare the field without a guard.
+export const credentialsNeedingAttention = (caregivers, now) =>
+    caregivers
+        .flatMap((caregiver) =>
+            caregiver.documents
+                .map((document) => ({ caregiver, document, status: documentStatus(document, now) }))
+                .filter((entry) => CREDENTIAL_ATTENTION.includes(entry.status))
+        )
+        .sort(byExpiry);
+
 // Whole days until expiry, rounded away from zero, so "expires in 1 day"
 // covers the last few hours rather than reading as zero. Negative once the
 // date has passed, which is what "18 days ago" needs.
