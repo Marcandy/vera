@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router";
 import StatusPill from "../components/StatusPill";
 import { getPatientById } from "../services/patientService";
 import { getVisitsByPatient } from "../services/visitService";
 import { formatDateTime, formatCurrency } from "../utils/format";
 import LoadError from "../components/LoadError";
+import { useAsyncData } from "../hooks/useAsyncData";
 import styles from "./PatientDetail.module.css";
 
 // Most recent first: a care history is read backwards from now, unlike a
@@ -14,49 +14,28 @@ const byMostRecent = (a, b) => b.appointmentTime.localeCompare(a.appointmentTime
 const PatientDetail = () => {
     const { patientId } = useParams();
 
-    const [patient, setPatient] = useState(null);
-    const [visitList, setVisitList] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [loadError, setLoadError] = useState(null);
-    const [reloadKey, setReloadKey] = useState(0);
-
-    useEffect(() => {
-        let stale = false;
-        async function fetchAll() {
-            // Both requests go out together rather than one after the other.
-            // They do not depend on each other, so awaiting them in sequence
-            // would spend two round trips to learn two independent facts.
-            try {
-                // Promise.all rejects as soon as either does, so one failed
-                // request fails the pair. That is the honest outcome here:
-                // half a patient record is not a patient record.
-                const [foundPatient, theirVisits] = await Promise.all([
-                    getPatientById(patientId),
-                    getVisitsByPatient(patientId),
-                ]);
-                if (!stale) {
-                    setPatient(foundPatient ?? null);
-                    setVisitList(theirVisits);
-                    setLoadError(null);
-                }
-            } catch (err) {
-                if (!stale) setLoadError(err.message);
-            } finally {
-                if (!stale) setLoading(false);
-            }
-        }
-        fetchAll();
-        return () => { stale = true; };
-    }, [patientId, reloadKey]);
+    // Both requests go out together rather than one after the other: they do
+    // not depend on each other, so awaiting them in sequence would spend two
+    // round trips to learn two independent facts. Promise.all rejects as soon
+    // as either does, which is the honest outcome here, because half a patient
+    // record is not a patient record.
+    const { data, error: loadError, loading, reload } = useAsyncData(
+        (signal) => Promise.all([
+            getPatientById(patientId, { signal }),
+            getVisitsByPatient(patientId, { signal }),
+        ]),
+        [patientId]);
 
     if (loading) return (<p>Loading...</p>);
+
+    const [patient, visitList] = data ?? [null, []];
 
     // Before not-found, for the same reason as VisitDetail: a failed request
     // leaves patient null too, and those are different answers.
     if (loadError) return (
         <LoadError
-            message={`This patient record could not load. ${loadError}`}
-            onRetry={() => { setLoading(true); setReloadKey((key) => key + 1); }}
+            message={`This patient record could not load. ${loadError.message}`}
+            onRetry={reload}
         />
     );
 

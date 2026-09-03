@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, Link } from "react-router";
 import StatusPill from "../components/StatusPill";
 import SignatureField from "../components/SignatureField";
@@ -9,6 +9,7 @@ import { documentStatus, isClearedToWork, daysUntil, RENEWAL_WINDOW_DAYS } from 
 import { DOCUMENT_STATUS } from "../utils/status";
 import { formatDate, formatDateTime, formatFileSize } from "../utils/format";
 import { useNow } from "../hooks/useNow";
+import { useAsyncData } from "../hooks/useAsyncData";
 import styles from "./CaregiverDetail.module.css";
 
 // Most recent first, matching the patient record: a work history is read
@@ -44,11 +45,19 @@ const startOfDay = (dateValue) =>
 const CaregiverDetail = () => {
     const { caregiverId } = useParams();
 
-    const [caregiver, setCaregiver] = useState(null);
-    const [visitList, setVisitList] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [loadError, setLoadError] = useState(null);
-    const [reloadKey, setReloadKey] = useState(0);
+    // Independent facts, fetched together rather than in sequence. setData is
+    // how a mutation writes its result back: signing a document returns the
+    // updated caregiver, so refetching would be a second round trip to learn
+    // what the service already said.
+    const { data, error: loadError, loading, reload, setData } = useAsyncData(
+        (signal) => Promise.all([
+            getCaregiverById(caregiverId, { signal }),
+            getVisitsByCaregiver(caregiverId, { signal }),
+        ]),
+        [caregiverId]);
+
+    const setCaregiver = (updated) =>
+        setData(([, theirVisits]) => [updated, theirVisits]);
 
     // Document status is derived from the clock, so it has to tick for the
     // same reason the visit attention flags do: leave this page open across a
@@ -64,31 +73,6 @@ const CaregiverDetail = () => {
     const [expiresOn, setExpiresOn] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [formError, setFormError] = useState(null);
-
-    useEffect(() => {
-        let stale = false;
-        async function fetchAll() {
-            try {
-                // Independent facts, so both requests go out together rather
-                // than spending two round trips in sequence.
-                const [foundCaregiver, theirVisits] = await Promise.all([
-                    getCaregiverById(caregiverId),
-                    getVisitsByCaregiver(caregiverId),
-                ]);
-                if (!stale) {
-                    setCaregiver(foundCaregiver ?? null);
-                    setVisitList(theirVisits);
-                    setLoadError(null);
-                }
-            } catch (err) {
-                if (!stale) setLoadError(err.message);
-            } finally {
-                if (!stale) setLoading(false);
-            }
-        }
-        fetchAll();
-        return () => { stale = true; };
-    }, [caregiverId, reloadKey]);
 
     const closeForm = () => {
         setOpenForm(null);
@@ -142,13 +126,15 @@ const CaregiverDetail = () => {
 
     if (loading) return (<p>Loading...</p>);
 
+    const [caregiver, visitList] = data ?? [null, []];
+
     // Checked before not-found, matching VisitDetail and PatientDetail: a
     // failed request also leaves caregiver null, and those are different
     // answers to give someone.
     if (loadError) return (
         <LoadError
-            message={`This caregiver record could not load. ${loadError}`}
-            onRetry={() => { setLoading(true); setReloadKey((key) => key + 1); }}
+            message={`This caregiver record could not load. ${loadError.message}`}
+            onRetry={reload}
         />
     );
 

@@ -1,39 +1,21 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { getPatients } from "../services/patientService";
 import LoadError from "../components/LoadError";
+import { useAsyncData } from "../hooks/useAsyncData";
 import styles from "./Patients.module.css";
 
 const Patients = () => {
-    const [patientList, setPatientList] = useState(null);
-    const [loadError, setLoadError] = useState(null);
-    const [reloadKey, setReloadKey] = useState(0);
+    const { data: patientList, error, loading, reload } = useAsyncData(
+        (signal) => getPatients({ signal }), []);
 
-    useEffect(() => {
-        let stale = false;
-        async function fetchPatients() {
-            try {
-                const results = await getPatients();
-                if (!stale) {
-                    setPatientList(results);
-                    setLoadError(null);
-                }
-            } catch (err) {
-                if (!stale) setLoadError(err.message);
-            }
-        }
-        fetchPatients();
-        return () => { stale = true; };
-    }, [reloadKey]);
-
-    if (loadError) return (
+    if (error) return (
         <LoadError
-            message={`The patient roster could not load. ${loadError}`}
-            onRetry={() => setReloadKey((key) => key + 1)}
+            message={`The patient roster could not load. ${error.message}`}
+            onRetry={reload}
         />
     );
 
-    if (patientList === null) return <p>Loading...</p>
+    if (loading) return <p>Loading...</p>
 
     return (
         <section className={styles.patients}>

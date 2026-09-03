@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router';
 import StatusPill from '../components/StatusPill';
 import { getVisitById } from '../services/visitService';
 import { formatDateTime, formatTime, formatLocation } from '../utils/format';
 import { VISIT_STATUS } from '../utils/status';
 import LoadError from '../components/LoadError';
+import { useAsyncData } from '../hooks/useAsyncData';
 import styles from './VisitDetail.module.css';
 
 // Evidence fields checked for the needs-review panel, in pipeline order.
@@ -19,29 +19,8 @@ const EVIDENCE_LABELS = [
 const VisitDetail = () => {
     const { visitId } = useParams();
 
-    const [visit, setVisit] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [loadError, setLoadError] = useState(null);
-    const [reloadKey, setReloadKey] = useState(0);
-
-    useEffect(() => {
-        let stale = false;
-        async function fetchData() {
-            try {
-                const result = await getVisitById(Number(visitId));
-                if (!stale) {
-                    setVisit(result ?? null);
-                    setLoadError(null);
-                }
-            } catch (err) {
-                if (!stale) setLoadError(err.message);
-            } finally {
-                if (!stale) setLoading(false);
-            }
-        }
-        fetchData();
-        return () => { stale = true; };
-    }, [visitId, reloadKey]);
+    const { data: visit, error: loadError, loading, reload } = useAsyncData(
+        (signal) => getVisitById(Number(visitId), { signal }), [visitId]);
 
     if (loading) return (<p>Loading...</p>);
 
@@ -50,8 +29,8 @@ const VisitDetail = () => {
     // the truth is that we could not ask is a different, wrong answer.
     if (loadError) return (
         <LoadError
-            message={`This visit could not load. ${loadError}`}
-            onRetry={() => { setLoading(true); setReloadKey((key) => key + 1); }}
+            message={`This visit could not load. ${loadError.message}`}
+            onRetry={reload}
         />
     );
 
