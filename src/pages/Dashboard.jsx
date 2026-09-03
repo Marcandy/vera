@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { getVisits } from "../services/visitService";
+import { getCaregivers } from "../services/caregiverService";
 import { VISIT_STATUS } from "../utils/status";
 import { countByStatus, sumCost } from "../utils/visits";
 import { formatCurrency, formatDateTime } from "../utils/format";
 import { visitsNeedingAttention } from "../utils/attention";
+import { credentialsNeedingAttention, isClearedToWork, daysUntil } from "../utils/documents";
+import { DOCUMENT_STATUS } from "../utils/status";
 import { useNow } from "../hooks/useNow";
 import AttentionFlag from "../components/AttentionFlag";
+import StatusPill from "../components/StatusPill";
 import LoadError from "../components/LoadError";
 import styles from "./Dashboard.module.css";
 
@@ -27,6 +31,16 @@ const ACTIONABLE = [
     },
 ];
 
+// Reads the day count as a person would, and says which side of the date it
+// falls on. "Lapsed 12 days ago" and "expires in 18 days" are different
+// instructions, not two shades of the same warning.
+const expiryPhrase = (days) => {
+    const count = Math.abs(days);
+    const unit = count === 1 ? "day" : "days";
+
+    return days >= 0 ? `expires in ${count} ${unit}` : `lapsed ${count} ${unit} ago`;
+};
+
 const PIPELINE = [
     { status: VISIT_STATUS.IN_PROGRESS, title: "In progress" },
     { status: VISIT_STATUS.SCHEDULED, title: "Scheduled" },
@@ -35,6 +49,7 @@ const PIPELINE = [
 
 const Dashboard = () => {
     const [visitList, setVisitList] = useState(null);
+    const [caregiverList, setCaregiverList] = useState([]);
     const [loadError, setLoadError] = useState(null);
     // Bumping this re-runs the effect, which is what Try again needs: the
     // request is the effect's job, so retrying means asking for the effect
@@ -50,9 +65,18 @@ const Dashboard = () => {
         let stale = false;
         async function fetchData() {
             try {
-                const visits = await getVisits();
+                // Two independent facts, so both requests go out together
+                // rather than spending two round trips in sequence. Promise.all
+                // fails the pair if either fails, which keeps one error state
+                // for one screen; the cost is that a caregiver read failing
+                // takes the visit panels down with it.
+                const [visits, caregivers] = await Promise.all([
+                    getVisits(),
+                    getCaregivers(),
+                ]);
                 if (!stale) {
                     setVisitList(visits);
+                    setCaregiverList(caregivers);
                     setLoadError(null);
                 }
             } catch (err) {
@@ -78,6 +102,12 @@ const Dashboard = () => {
     // disagree with the list it summarizes.
     const counts = countByStatus(visitList);
     const needsAttention = visitsNeedingAttention(visitList, now);
+
+    // The other half of what Denise is accountable for. Visits prove care
+    // happened; credentials prove the person delivering it was allowed to.
+    // The dashboard knew about the first and said nothing about the second.
+    const credentials = credentialsNeedingAttention(caregiverList, now);
+    const notCleared = caregiverList.filter((caregiver) => !isClearedToWork(caregiver, now));
     const readyToBillTotal = sumCost(
         visitList.filter((visit) => visit.status === VISIT_STATUS.READY_TO_BILL)
     );
@@ -139,6 +169,42 @@ const Dashboard = () => {
                         enters later is a manual edit, so the cheapest fix is the
                         caregiver making it.
                     </p>
+                </div>
+            )}
+
+            {(credentials.length > 0 || notCleared.length > 0) && (
+                <div className={styles.credentialPanel}>
+                    <h4 className={styles.nudgeTitle}>Credentials to chase</h4>
+
+                    {credentials.length > 0 && (
+                        <ul className={styles.nudgeList}>
+                            {credentials.map(({ caregiver, document, status }) => (
+                                // Keyed by the document id, which is unique across
+                                // the whole roster, so no composite key is needed.
+                                <li key={document.id} className={styles.nudgeRow}>
+                                    <Link to={`/caregivers/${caregiver.id}`} className={styles.nudgeLink}>
+                                        {caregiver.name}
+                                    </Link>
+                                    <span className={styles.nudgeMeta}>
+                                        {document.name} · {expiryPhrase(daysUntil(document.expiresAt, now))}
+                                    </span>
+                                    <StatusPill status={status} />
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    {notCleared.length > 0 && (
+                        <p className={styles.clearanceLine}>
+                            <Link to="/caregivers">
+                                {notCleared.length} of {caregiverList.length} caregivers
+                            </Link>
+                            {notCleared.length === 1 ? " is" : " are"} not cleared to work.
+                            {credentials.some((entry) => entry.status === DOCUMENT_STATUS.EXPIRED)
+                                ? " A lapsed credential is cleared by recording a current one, never by signing it off."
+                                : " Outstanding paperwork is what is holding them."}
+                        </p>
+                    )}
                 </div>
             )}
 

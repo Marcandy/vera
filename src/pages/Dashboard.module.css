@@ -173,3 +173,23 @@
     font-size: 0.8rem;
     line-height: 1.45;
 }
+
+/* Same shape as the nudge panel, different edge colour: credentials are a
+   compliance hold rather than a missed punch, and the two should not read as
+   one queue. Reuses the nudge row classes below it, since the row is
+   genuinely the same thing: a name, a fact, a badge. */
+.credentialPanel {
+    margin-top: 24px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--vera-secondary);
+    border-radius: 10px;
+    background-color: var(--card-bg);
+}
+
+.clearanceLine {
+    margin: 12px 0 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
