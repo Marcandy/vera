@@ -47,3 +47,20 @@
     font-size: 0.9rem;
     line-height: 1.45;
 }
+
+/* section headings for the three questions this screen answers: what is on
+   today, what is held waiting on me, and everything already done */
+.sectionTitle {
+    margin: 24px 0 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+}
+
+.sectionNote {
+    margin: 0 0 12px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}

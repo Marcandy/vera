@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useParams, Link } from "react-router";
 import StatusPill from "../components/StatusPill";
 import { checkInVisit, checkOutVisit, getVisitById, supplyEvidence } from "../services/visitService";
+import { getPatientById } from "../services/patientService";
+import { useSession } from "../context/sessionContext";
+import { hasRole, ROLES } from "../utils/roles";
 import styles from "./CaregiverVisit.module.css";
 import SignatureField from "../components/SignatureField";
 import LoadError from "../components/LoadError";
@@ -21,6 +24,12 @@ const EVIDENCE_LABELS = [
 
 const CaregiverVisit = () => {
     const { visitId } = useParams();
+    const { user } = useSession();
+
+    // This page is reached from two directions, so back means two things. An
+    // admin arrived from the visit's read surface; a caregiver arrived from
+    // their own day and has no nav entry for the admin visit list at all.
+    const isAdmin = hasRole(user, ROLES.ADMIN);
 
     // setData is how each mutation writes its result back. Check-in, check-out
     // and supplying evidence all return the updated visit, so there is nothing
@@ -37,6 +46,16 @@ const CaregiverVisit = () => {
     const [signature, setSignature] = useState("");
     const [confirmNoSignature, setConfirmNoSignature] = useState(false);
 
+
+    // The patient is a SECOND read, and it waits on the first: the visit is what
+    // knows which patient this is, so it is skipped until there is an id. Its
+    // failure is deliberately silent, which is why only `data` is taken here.
+    // Marcus is standing on a doorstep, and losing the check-in button because
+    // an address could not load would be the worse outcome.
+    const { data: patient } = useAsyncData(
+        (signal) => getPatientById(visit.patientId, { signal }),
+        [visit?.patientId],
+        { skip: !visit?.patientId });
 
     async function handleCheckIn () {
         setError(null);
@@ -113,7 +132,9 @@ const CaregiverVisit = () => {
 
     return (
         <section className={styles.caregiverVisit}>
-            <Link to={`/visits/${visit.id}`} className={styles.backLink}>← Back to visit detail</Link>
+            <Link to={isAdmin ? `/visits/${visit.id}` : "/my-visits"} className={styles.backLink}>
+                {isAdmin ? "← Back to visit detail" : "← Back to my visits"}
+            </Link>
 
             <p className={styles.roleBanner}>Caregiver check-in</p>
 
@@ -126,9 +147,27 @@ const CaregiverVisit = () => {
                 <dt>Appointment</dt>
                 <dd>{formatDateTime(visit.appointmentTime)}</dd>
 
-                <dt>Caregiver</dt>
-                <dd>{visit.caregiverName}</dd>
+                <dt>Service</dt>
+                <dd>{visit.serviceType}</dd>
+
+                {/* Where Marcus is actually going. The app knew this all along
+                    and showed it only to the office, on a page he cannot reach. */}
+                {patient?.address && (
+                    <>
+                        <dt>Address</dt>
+                        <dd>{patient.address}</dd>
+                    </>
+                )}
             </dl>
+
+            {/* What this patient needs help with in general, as opposed to what
+                they raise during one visit. Standing context belongs before the
+                work, not only in a record Denise can see. */}
+            {patient?.standingConcerns && (
+                <p className={styles.standingConcerns}>
+                    <strong>Needs help with:</strong> {patient.standingConcerns}
+                </p>
+            )}
 
             {visit.status === VISIT_STATUS.SCHEDULED && (
                 <>

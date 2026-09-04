@@ -5,12 +5,17 @@ import { useSession } from "../context/sessionContext";
 import { useNow } from "../hooks/useNow";
 import { useAsyncData } from "../hooks/useAsyncData";
 import { attentionFor, visitsNeedingAttention } from "../utils/attention";
+import { isSameLocalDay } from "../utils/visits";
+import { VISIT_STATUS } from "../utils/status";
 import LoadError from "../components/LoadError";
 import styles from "./MyVisits.module.css";
 
 // Chronological, not by attention rank. The dashboard orders by what needs
 // Denise to act; a caregiver works through a day in the order it happens.
 const byAppointment = (a, b) => a.appointmentTime.localeCompare(b.appointmentTime);
+
+// History reads backwards from now, which is the opposite of a day.
+const byMostRecent = (a, b) => b.appointmentTime.localeCompare(a.appointmentTime);
 
 const MyVisits = () => {
     const { user, loading } = useSession();
@@ -84,6 +89,42 @@ const MyVisits = () => {
 
     const needsAttention = visitsNeedingAttention(visitList, now);
 
+    // THREE QUESTIONS, NOT ONE LIST. This screen used to answer "every visit
+    // ever assigned to you, oldest first", which put three already-billed visits
+    // from last month above the one job happening today. A caregiver opens this
+    // on a phone between houses; the answer has to be what to do next.
+    // Needs-review visits are excluded here even when they happened today, so a
+    // visit checked out this afternoon without a signature appears once, under
+    // the heading that says what to do about it, rather than twice.
+    const today = visitList
+        .filter((visit) => visit.status !== VISIT_STATUS.NEEDS_REVIEW
+            && isSameLocalDay(visit.appointmentTime, now))
+        .sort(byAppointment);
+
+    // Visits held for missing evidence, whatever day they happened. These are
+    // here because the caregiver is the ONLY person who can clear them: the
+    // office can chase a missing signature but cannot produce one.
+    const needsEvidence = visitList
+        .filter((visit) => visit.status === VISIT_STATUS.NEEDS_REVIEW)
+        .sort(byMostRecent);
+
+    const shown = new Set([...today, ...needsEvidence].map((visit) => visit.id));
+    const earlier = visitList
+        .filter((visit) => !shown.has(visit.id))
+        .sort(byMostRecent);
+
+    const renderVisit = (visit) => (
+        <li key={visit.id}>
+            <Link to={`/caregiver/visits/${visit.id}`} className={styles.cardLink}>
+                <VisitCard
+                    visit={visit}
+                    attention={attentionFor(visit, now)}
+                    showCaregiver={false}
+                />
+            </Link>
+        </li>
+    );
+
     return (
         <section className={styles.myVisits}>
             <h3>My visits</h3>
@@ -103,18 +144,40 @@ const MyVisits = () => {
                     appear here.
                 </p>
             ) : (
-                <ul className={styles.visitList}>
-                    {[...visitList].sort(byAppointment).map((visit) => (
-                        <li key={visit.id}>
-                            <Link
-                                to={`/caregiver/visits/${visit.id}`}
-                                className={styles.cardLink}
-                            >
-                                <VisitCard visit={visit} attention={attentionFor(visit, now)} />
-                            </Link>
-                        </li>
-                    ))}
-                </ul>
+                <>
+                    <h4 className={styles.sectionTitle}>
+                        Today{today.length > 0 && ` (${today.length})`}
+                    </h4>
+                    {today.length === 0 ? (
+                        <p className={styles.emptyState}>
+                            Nothing scheduled today.
+                        </p>
+                    ) : (
+                        <ul className={styles.visitList}>{today.map(renderVisit)}</ul>
+                    )}
+
+                    {needsEvidence.length > 0 && (
+                        <>
+                            <h4 className={styles.sectionTitle}>
+                                Waiting on you ({needsEvidence.length})
+                            </h4>
+                            <p className={styles.sectionNote}>
+                                Held out of billing until the missing evidence is
+                                supplied. Nobody else can supply it.
+                            </p>
+                            <ul className={styles.visitList}>{needsEvidence.map(renderVisit)}</ul>
+                        </>
+                    )}
+
+                    {earlier.length > 0 && (
+                        <>
+                            <h4 className={styles.sectionTitle}>
+                                Earlier ({earlier.length})
+                            </h4>
+                            <ul className={styles.visitList}>{earlier.map(renderVisit)}</ul>
+                        </>
+                    )}
+                </>
             )}
         </section>
     );

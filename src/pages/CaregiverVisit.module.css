@@ -195,3 +195,15 @@ textarea.fieldInput {
     border-radius: 10px;
     padding: 20px;
 }
+
+/* standing context for this patient, read before the work starts */
+.standingConcerns {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--vera-secondary);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
