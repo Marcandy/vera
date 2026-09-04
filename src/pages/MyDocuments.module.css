@@ -1,4 +1,4 @@
-.caregiverDetail {
+.myDocuments {
     max-width: 640px;
     margin: 24px auto;
     padding: 0 16px;
@@ -351,23 +351,68 @@
     }
 }
 
-/* a renewal waiting on the office. Reads as an action to take, not as a
-   status the document already has */
-.submissionCard {
-    margin-top: 12px;
-    padding: 12px 14px;
-    border: 1px solid #c5d9ec;
-    border-radius: 8px;
-    background-color: #eef4fb;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
+/* phone first: this is read between houses, one hand, so the page is a
+   single column and every control is a full-width tap target */
+.myDocuments {
+    max-width: 560px;
 }
 
-.submissionText {
-    margin: 0;
-    font-size: 0.88rem;
+.subtitle {
+    margin: 0 0 16px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.clearedBanner,
+.blockedBanner {
+    margin: 0 0 20px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 0.95rem;
     line-height: 1.5;
+}
+
+.clearedBanner {
+    background-color: #e3f5e9;
+    color: #14532d;
+    border: 1px solid #a7d8b8;
+}
+
+.blockedBanner {
+    background-color: #fdecea;
+    color: #7f1d1d;
+    border: 1px solid #f0b9b4;
+}
+
+.expiry {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* a renewal already sent in: says plainly that it is not finished */
+.submittedNote {
+    margin: 10px 0 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background-color: #eef4fb;
+    border: 1px solid #c5d9ec;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text);
     word-break: break-word;
+}
+
+.rowActions {
+    flex-wrap: wrap;
+}
+
+.secondaryButton,
+.primaryButton {
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}
+
+.dateRow {
+    grid-template-columns: 1fr;
 }

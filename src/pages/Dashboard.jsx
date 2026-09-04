@@ -5,7 +5,7 @@ import { VISIT_STATUS } from "../utils/status";
 import { countByStatus, sumCost } from "../utils/visits";
 import { formatCurrency, formatDateTime } from "../utils/format";
 import { visitsNeedingAttention } from "../utils/attention";
-import { credentialsNeedingAttention, isClearedToWork, daysUntil } from "../utils/documents";
+import { credentialsNeedingAttention, isClearedToWork, daysUntil, submissionsAwaitingReview } from "../utils/documents";
 import { DOCUMENT_STATUS } from "../utils/status";
 import { useNow } from "../hooks/useNow";
 import { useAsyncData } from "../hooks/useAsyncData";
@@ -81,6 +81,12 @@ const Dashboard = () => {
     // The dashboard knew about the first and said nothing about the second.
     const credentials = credentialsNeedingAttention(caregiverList, now);
     const notCleared = caregiverList.filter((caregiver) => !isClearedToWork(caregiver, now));
+
+    // Work already done that only Denise can finish. Without this the loop is
+    // open: a caregiver sends a renewal in and nothing ever tells the office to
+    // look at it, so the document sits pending forever and the caregiver
+    // believes they are covered.
+    const awaitingReview = submissionsAwaitingReview(caregiverList);
     const readyToBillTotal = sumCost(
         visitList.filter((visit) => visit.status === VISIT_STATUS.READY_TO_BILL)
     );
@@ -145,7 +151,7 @@ const Dashboard = () => {
                 </div>
             )}
 
-            {(credentials.length > 0 || notCleared.length > 0) && (
+            {(credentials.length > 0 || notCleared.length > 0 || awaitingReview.length > 0) && (
                 <div className={styles.credentialPanel}>
                     <h4 className={styles.nudgeTitle}>Credentials to chase</h4>
 
@@ -162,6 +168,22 @@ const Dashboard = () => {
                                         {document.name} · {expiryPhrase(daysUntil(document.expiresAt, now))}
                                     </span>
                                     <StatusPill status={status} />
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    {awaitingReview.length > 0 && (
+                        <ul className={styles.nudgeList}>
+                            {awaitingReview.map(({ caregiver, document }) => (
+                                <li key={document.id} className={styles.nudgeRow}>
+                                    <Link to={`/caregivers/${caregiver.id}`} className={styles.nudgeLink}>
+                                        {caregiver.name}
+                                    </Link>
+                                    <span className={styles.nudgeMeta}>
+                                        {document.name} · sent in, waiting on you
+                                    </span>
+                                    <span className={styles.reviewFlag}>needs your check</span>
                                 </li>
                             ))}
                         </ul>

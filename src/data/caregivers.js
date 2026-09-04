@@ -23,6 +23,13 @@
 // the office learns it has one. receivedAt is when that happened, whichever
 // way it arrived.
 //
+// submission is a RENEWAL WAITING ON THE OFFICE, or null. A caregiver can send
+// in a new card themselves, which is how the real products work, but it does not
+// take effect on its own: the agency is what has to produce a valid credential
+// at a survey, so a credential that cleared itself would be a credential nobody
+// checked. The live fields stay in force until the office accepts, which also
+// means renewing a card early cannot invalidate the one still working.
+//
 // fileName, fileSize and fileType are METADATA ONLY. Nothing here stores the
 // bytes, and the UI says so plainly rather than implying a file cabinet that
 // does not exist. They are the columns a Spring controller would persist
@@ -48,7 +55,8 @@ export const caregivers = [
                 fileName: "marcus-reed-state-id.jpg",
                 fileSize: 412336,
                 fileType: "image/jpeg",
-                receivedAt: at(-820, "09:12")
+                receivedAt: at(-820, "09:12"),
+                submission: null
             },
             {
                 id: 2,
@@ -59,7 +67,8 @@ export const caregivers = [
                 fileName: null,
                 fileSize: null,
                 fileType: null,
-                receivedAt: at(-830, "14:40")
+                receivedAt: at(-830, "14:40"),
+                submission: null
             },
             {
                 id: 3,
@@ -70,7 +79,8 @@ export const caregivers = [
                 fileName: "marcus-cpr-card.pdf",
                 fileSize: 186204,
                 fileType: "application/pdf",
-                receivedAt: at(-710, "11:05")
+                receivedAt: at(-710, "11:05"),
+                submission: null
             },
             {
                 id: 4,
@@ -81,7 +91,8 @@ export const caregivers = [
                 fileName: "marcus-tb-results.pdf",
                 fileSize: 94118,
                 fileType: "application/pdf",
-                receivedAt: at(-248, "16:20")
+                receivedAt: at(-248, "16:20"),
+                submission: null
             }
         ]
     },
@@ -99,7 +110,8 @@ export const caregivers = [
                 fileName: "dana-alvarez-state-id.jpg",
                 fileSize: 388910,
                 fileType: "image/jpeg",
-                receivedAt: at(-500, "10:02")
+                receivedAt: at(-500, "10:02"),
+                submission: null
             },
             {
                 id: 6,
@@ -110,7 +122,8 @@ export const caregivers = [
                 fileName: null,
                 fileSize: null,
                 fileType: null,
-                receivedAt: at(-500, "15:18")
+                receivedAt: at(-500, "15:18"),
+                submission: null
             },
             {
                 id: 7,
@@ -121,7 +134,8 @@ export const caregivers = [
                 fileName: "dana-cpr-card.pdf",
                 fileSize: 201774,
                 fileType: "application/pdf",
-                receivedAt: at(-298, "09:44")
+                receivedAt: at(-298, "09:44"),
+                submission: null
             },
             {
                 id: 8,
@@ -132,7 +146,8 @@ export const caregivers = [
                 fileName: null,
                 fileSize: null,
                 fileType: null,
-                receivedAt: null
+                receivedAt: null,
+                submission: null
             }
         ]
     },
@@ -151,7 +166,8 @@ export const caregivers = [
                 fileName: "keisha-thompson-state-id.jpg",
                 fileSize: 401552,
                 fileType: "image/jpeg",
-                receivedAt: at(-700, "08:35")
+                receivedAt: at(-700, "08:35"),
+                submission: null
             },
             {
                 id: 10,
@@ -162,7 +178,8 @@ export const caregivers = [
                 fileName: null,
                 fileSize: null,
                 fileType: null,
-                receivedAt: at(-700, "13:07")
+                receivedAt: at(-700, "13:07"),
+                submission: null
             },
             {
                 id: 11,
@@ -173,7 +190,8 @@ export const caregivers = [
                 fileName: "keisha-cpr-card.pdf",
                 fileSize: 178640,
                 fileType: "application/pdf",
-                receivedAt: at(-395, "12:29")
+                receivedAt: at(-395, "12:29"),
+                submission: null
             },
             {
                 id: 12,
@@ -184,7 +202,8 @@ export const caregivers = [
                 fileName: "keisha-tb-results.pdf",
                 fileSize: 88402,
                 fileType: "application/pdf",
-                receivedAt: at(-118, "17:11")
+                receivedAt: at(-118, "17:11"),
+                submission: null
             }
         ]
     },
@@ -203,7 +222,8 @@ export const caregivers = [
                 fileName: "luis-rivera-state-id.jpg",
                 fileSize: 355017,
                 fileType: "image/jpeg",
-                receivedAt: at(-60, "11:52")
+                receivedAt: at(-60, "11:52"),
+                submission: null
             },
             {
                 id: 14,
@@ -214,7 +234,8 @@ export const caregivers = [
                 fileName: null,
                 fileSize: null,
                 fileType: null,
-                receivedAt: null
+                receivedAt: null,
+                submission: null
             },
             {
                 id: 15,
@@ -225,7 +246,8 @@ export const caregivers = [
                 fileName: null,
                 fileSize: null,
                 fileType: null,
-                receivedAt: null
+                receivedAt: null,
+                submission: null
             },
             {
                 id: 16,
@@ -236,7 +258,8 @@ export const caregivers = [
                 fileName: null,
                 fileSize: null,
                 fileType: null,
-                receivedAt: null
+                receivedAt: null,
+                submission: null
             }
         ]
     },
@@ -257,7 +280,8 @@ export const caregivers = [
                 fileName: "angela-brooks-state-id.jpg",
                 fileSize: 397228,
                 fileType: "image/jpeg",
-                receivedAt: at(-900, "09:03")
+                receivedAt: at(-900, "09:03"),
+                submission: null
             },
             {
                 id: 18,
@@ -268,7 +292,8 @@ export const caregivers = [
                 fileName: null,
                 fileSize: null,
                 fileType: null,
-                receivedAt: at(-900, "16:47")
+                receivedAt: at(-900, "16:47"),
+                submission: null
             },
             {
                 id: 19,
@@ -279,7 +304,8 @@ export const caregivers = [
                 fileName: "angela-cpr-card.pdf",
                 fileSize: 192845,
                 fileType: "application/pdf",
-                receivedAt: at(-740, "10:16")
+                receivedAt: at(-740, "10:16"),
+                submission: null
             },
             {
                 id: 20,
@@ -290,7 +316,8 @@ export const caregivers = [
                 fileName: null,
                 fileSize: null,
                 fileType: null,
-                receivedAt: null
+                receivedAt: null,
+                submission: null
             }
         ]
     }

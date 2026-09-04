@@ -82,7 +82,10 @@ const Layout = () => {
                             </>
                         )}
                         {user && !isAdmin && (
-                            <NavLink to="/my-visits" className={navLinkClass}>My visits</NavLink>
+                            <>
+                                <NavLink to="/my-visits" className={navLinkClass}>My visits</NavLink>
+                                <NavLink to="/my-documents" className={navLinkClass}>My documents</NavLink>
+                            </>
                         )}
                     </nav>
                 )}
